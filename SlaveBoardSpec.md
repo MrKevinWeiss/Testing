@@ -1,13 +1,13 @@
 # Purpose
 
-To have a low cost, certified slave device that can be used to automate regression testing of basic periphials.
+To have a low cost, certified slave device that can be used to automate regression testing of basic peripherals.
 
 # Problems
 
--Sensors and other slave devices cannot test all configurable modes
--RPi does not support low level testing
--Standard Arduino extensions don't support all configurable features well
--Standard test tools from DIOLAN and Total Phase require licenses and are expensive
+- Sensors and other slave devices cannot test all configurable modes
+- RPi does not support low level testing
+- Standard Arduino extensions don't support all configurable features well
+- Standard test tools from DIOLAN and Total Phase require licenses and are expensive
 
 # Requirements
 
@@ -25,7 +25,6 @@ Clock Output of stable 10 1KHz
 Serial Number/Firmware Revision for tractability
 
 # Future Considerations
-
 CANBus support
 Master mode of periph support
 Multi master I2C
@@ -55,7 +54,7 @@ Change to all 4 modes
 Speeds
 Stress test
 Send different dummy data
-###Failure Cases
+### Failure Cases
 Incorrect mode settings
 Incorrect pin configs
 Unsupported Speeds
@@ -68,10 +67,13 @@ write register
 read register
 change slave address
 slave clock stretch
+slave data not ready
 speeds
 stress tests
+10 bit and 7 bit addr
 
 ### Failure Cases
+unterminated session
 wrong slave address
 Incorrect pin configs
 Unsupported Speeds
@@ -124,6 +126,7 @@ Linearity
 
 # Protocol Definition
 Register Based, up to 127 registers but not more
+
 GPIO0 <I>: When raised initiates register changes (uart needs to change modem enable and baud it happens at the same time, not per reg change)
 GPIO1 <O>: Indicates if tests are currently passing (dependent on register mode)
 
@@ -134,28 +137,30 @@ All spi dummy bytes filled with ? for master and 0xA5 for slave
 
 ### Read 1 Byte
 Lower CS
-Master->0x00| Register address (sets SPI reg pointer to address)
+Master->0x01| Register address (sets SPI reg pointer to address)<<1
 Slave->data
 Raise CS
 
 ### Write 1 Byte
 Lower CS
-Master->0x80| Register address (sets SPI reg pointer to address)
+Master->0x00| Register address (sets SPI reg pointer to address)<<1
 Master->data copy to reg
 Raise CS
 
 ### Read n Byte
 Lower CS
-Master->0x00| Register address (sets SPI reg pointer to address)
+Master->0x01| Register address (sets SPI reg pointer to address)<<1
 Slave->data (repeat n times)
 Raise CS
 
 ### Write n Byte
 Lower CS
-Master->0x80| Register address (sets SPI reg pointer to address)
+Master->0x00| Register address (sets SPI reg pointer to address)<<1
 Master->data copy to reg   (repeat n times)
 Raise CS
 
 
 ## I2C comms
-Default slave addr is 0x55, can be changed to 0 to 0x7F
+Default slave addr is 0x55, can be changed to 0 to 0x7F minus reserved addr
+LSb indicates R/W, read is 1, write is 0
+Enable/disable slave clock stretching
