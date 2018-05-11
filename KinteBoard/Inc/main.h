@@ -49,11 +49,6 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define LED0_Pin GPIO_PIN_13
-#define LED0_GPIO_Port GPIOC
-#define TEST0_Pin GPIO_PIN_10
-#define TEST0_GPIO_Port GPIOB
-
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
@@ -62,7 +57,8 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-
+#define DMA_RX_BUF_SIZE	1024
+#define DMA_TX_BUF_SIZE	1024
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
