@@ -5,15 +5,16 @@
  *      Author: kevinweiss
  */
 
+#if 0
 #include "stm32f1xx_hal.h"
 
-#include "kinte_typedef.h"
+#include "kinte_mem_map.h"
 
 #include "app.h"
 
 #define START_REG	0
 
-kinte_reg_t regs __attribute__ ((aligned (8)));;
+kinte_reg_t regs __attribute__ ((aligned (8))) = {0};
 extern I2C_HandleTypeDef hi2c1;
 
 #define MAX_REG_DATA_MSK	0x7F
@@ -157,4 +158,5 @@ void i2c_it(I2C_HandleTypeDef* hi2c){
 
 
 
+#endif
 #endif

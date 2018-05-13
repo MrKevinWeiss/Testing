@@ -293,7 +293,7 @@ void I2C1_EV_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C1_EV_IRQn 0 */
 	//I2C1->DR = 0x5;
-	i2c_it(&hi2c1);
+	//i2c_it(&hi2c1);
 #if 0
 	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
   /* USER CODE END I2C1_EV_IRQn 0 */
@@ -310,7 +310,7 @@ void I2C1_EV_IRQHandler(void)
 void I2C1_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C1_ER_IRQn 0 */
-	i2c_err(&hi2c1);
+	//i2c_err(&hi2c1);
 	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
   /* USER CODE END I2C1_ER_IRQn 0 */
   HAL_I2C_ER_IRQHandler(&hi2c1);

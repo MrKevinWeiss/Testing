@@ -41,7 +41,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "app.h"
-#include "kinte_typedef.h"
+#include "kinte_mem_map.h"
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -143,12 +143,15 @@ int main(void) {
 	MX_TIM4_Init();
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
-	init_app();
+	//init_app();
 	//I2C1->DR = 0x5;
+#if 0
 	uint8_t buf[256] = {0};
 	HAL_UART_Transmit_DMA(&huart2, "This is a test\n\r",
 			strlen("This is a test\n\r"));
 	HAL_UART_Receive_DMA(&huart2, buf, 256);
+
+#endif
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -162,6 +165,7 @@ int main(void) {
 		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
 
 		}
+#if 0
 		if (GET_RX_AMOUNT >= 1){
 			if (buf[GET_RX_AMOUNT -1] == '\n'){
 				HAL_UART_AbortTransmit(&huart2);
@@ -170,7 +174,7 @@ int main(void) {
 				HAL_UART_Receive_DMA(&huart2, buf, 256);
 			}
 		}
-
+#endif
 
 	}
 	/* USER CODE END 3 */
