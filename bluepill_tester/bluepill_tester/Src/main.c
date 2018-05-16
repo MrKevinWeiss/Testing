@@ -40,6 +40,9 @@
 #include "stm32f1xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include <errno.h>
+
+#include "mem_map.h"
 #include "serial_com.h"
 /* USER CODE END Includes */
 
@@ -66,7 +69,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-bpt_reg_t regs __attribute__ ((aligned (8))) = {0};
+bpt_reg_t regs __attribute__ ((aligned (8))) = { 0 };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -136,14 +139,15 @@ int main(void) {
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
 
-	init_app_com(&huart2);
+	app_com_init(&huart2);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {}
-		poll_comm(&huart2);
+		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
+		}
+		app_com_poll();
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

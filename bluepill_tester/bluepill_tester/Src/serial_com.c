@@ -15,16 +15,21 @@
 
 #define COM_BUF_SIZE	((uint16_t)256)
 
-#define INIT_MSG		"Initializing Communication"
+#define INIT_MSG		"Initializing Communication\r\n"
 
+#define RX_END_CHAR		'\n'
+#define TX_END_STR		"\r\n"
 #define READ_BYTE_CMD	"rb "
 #define READ_REG_CMD	"rr "
 #define WRITE_REG_CMD	"wr "
-#define EXECUTE_CMD		"e\n"
+#define EXECUTE_CMD		"ex\n"
 
 #define ATOU_MAX_CHAR	6
 #define ATOU_ERROR		0xFFFFFFFF
 #define BYTE_MAX		((uint8_t)0xFF)
+
+#define IS_RX_WAITING(x)	(HAL_IS_BIT_SET(x, USART_CR3_DMAR))
+#define IS_NUM(x)			(x >= '0' && x <= '9')
 
 #ifndef EOK
 #define EOK 0
@@ -34,259 +39,300 @@
 #define EUNKNOWN (__ELASTERROR + 1)
 #endif
 
-int32_t _get_rx_amount(UART_HandleTypeDef *huart);
-uint32_t _parse_command(char *str);
-uint32_t _fast_atou(char **str, char terminator);
-int32_t _cmd_read_byte(char *str);
-int32_t _cmd_read_reg(char *str);
-int32_t _cmd_write_reg(char *str);
-uint32_t _valid_args(char *str);
+#ifndef ENOACTION
+#define ENOACTION (__ELASTERROR + 2)
+#endif
 
+static error_t _tx_str(UART_HandleTypeDef *huart, char *str);
+static error_t _rx_str(UART_HandleTypeDef *huart, char *str);
+static error_t _xfer_complete(UART_HandleTypeDef *huart, char *str);
+
+static error_t _parse_command(char *str);
+static error_t _cmd_read_byte(char *str);
+static error_t _cmd_read_reg(char *str);
+static error_t _cmd_write_reg(char *str);
+static error_t _cmd_execute(char *str);
+
+static error_t _valid_args(char *str, uint32_t *arg_count);
+static uint32_t _fast_atou(char **str, char terminator);
+static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart);
 
 extern bpt_reg_t regs;
 static UART_HandleTypeDef* huart_inst = NULL;
 
 error_t app_com_init(UART_HandleTypeDef *huart) {
 
-	error_t err =_tx_str(huart, INIT_MSG);
-	if (err == EOK){
+	error_t err = _tx_str(huart, INIT_MSG);
+	if (err == EOK) {
 		huart_inst = huart;
+	}
+	return err;
+}
+
+error_t app_com_poll() {
+	static char str[COM_BUF_SIZE] = { 0 };
+	error_t err = ENOACTION;
+
+	if (huart_inst == NULL) {
+		err = ENODEV;
+	}
+	else if (IS_RX_WAITING(huart_inst->Instance->CR3)) {
+		err = _rx_str(huart_inst, str);
+	}
+	else if (huart_inst->TxXferCount == 0) {
+		if (str[COM_BUF_SIZE-1] != 0){
+			err = EMSGSIZE;
+			HAL_UART_AbortTransmit(huart_inst);
+			HAL_UART_AbortReceive(huart_inst);
+			memset(str, 0, COM_BUF_SIZE);
+			sprintf(str, "%d%s", err, TX_END_STR);
+			HAL_UART_Transmit_DMA(huart_inst, (uint8_t*) str, strlen(str));
+		}
+		else {
+			err = _xfer_complete(huart_inst, str);
+		}
+	}
+	return err;
+}
+
+static error_t _xfer_complete(UART_HandleTypeDef *huart, char *str) {
+	HAL_StatusTypeDef status;
+	error_t err = EUNKNOWN;
+
+	memset(str, 0, COM_BUF_SIZE);
+	HAL_UART_AbortTransmit(huart_inst);
+	HAL_UART_AbortReceive(huart_inst);
+	status = HAL_UART_Receive_DMA(huart, (uint8_t*) str, COM_BUF_SIZE);
+	if (status == HAL_BUSY) {
+		err = EBUSY;
+	}
+	if (status == HAL_ERROR) {
+		err = ENXIO;
+	} else if (status == HAL_OK) {
+		err = EOK;
+	}
+	return err;
+}
+
+static error_t _rx_str(UART_HandleTypeDef *huart, char *str) {
+	int32_t rx_amount;
+	error_t err = ENOACTION;
+	rx_amount = _get_rx_amount(huart);
+	if (rx_amount >= 1) {
+		if (str[rx_amount - 1] == RX_END_CHAR && _get_rx_amount(huart) != COM_BUF_SIZE) {
+			HAL_UART_AbortTransmit(huart);
+			HAL_UART_AbortReceive(huart);
+			err = _parse_command(str);
+			if (err == EOK) {
+				HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+			} else {
+				sprintf(str, "%d%s", err, TX_END_STR);
+				HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+			}
+		}
+	}
+	return err;
+}
+
+static error_t _tx_str(UART_HandleTypeDef *huart, char *str) {
+	error_t err = EUNKNOWN;
+	HAL_StatusTypeDef status = HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+
+	if (status == HAL_BUSY) {
+		HAL_UART_AbortTransmit(huart);
+		HAL_UART_AbortReceive(huart);
+		status = HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+		if (status == HAL_BUSY) {
+			err = EBUSY;
+		}
+	}
+	if (status == HAL_ERROR) {
+		err = ENXIO;
+	} else if (status == HAL_OK) {
+		err = EOK;
 	}
 
 	return err;
 }
 
-
-
-error_t app_com_poll() {
-
-	static char str[COM_BUF_SIZE] = { 0 };
-
-	HAL_StatusTypeDef status = HAL_ERROR;
-	int32_t rx_amount;
-
-	if (huart_inst == NULL){
-		return ENODEV;
+static error_t _parse_command(char *str) {
+	if (memcmp(str, READ_BYTE_CMD, strlen(READ_BYTE_CMD)) == 0) {
+		return _cmd_read_byte(str);
+	} else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
+		return _cmd_read_reg(str);
+	} else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0) {
+		return _cmd_write_reg(str);
+	} else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
+		return _cmd_execute(str);
 	}
-
-	if (huart_inst->RxState == HAL_UART_STATE_BUSY_RX){
-		rx_amount = _get_rx_amount(huart_inst);
-		if (rx_amount >= 1) {
-			if (str[rx_amount - 1] == '\n') {
-				HAL_UART_AbortTransmit(huart_inst);
-				HAL_UART_AbortReceive(huart_inst);
-				if (_parse_command(str) == 0){
-					HAL_UART_Transmit_DMA(huart_inst, (uint8_t*)str, strlen(str));
-				}
-				else{
-					sprintf(str, "1\r\n");
-					HAL_UART_Transmit_DMA(huart_inst, (uint8_t*)str, strlen(str));
-				}
-				return 1; //error
-
-			}
-		}
-	}
-	else if (huart_inst->TxXferCount == 0){
-		if (status == HAL_BUSY){
-			HAL_UART_AbortTransmit(huart);
-			HAL_UART_AbortReceive(huart);
-			status = HAL_UART_Transmit_DMA(huart, INIT_MSG, sizeof(INIT_MSG));
-			if (status == HAL_BUSY){
-				return EBUSY;
-			}
-		}
-		memset(str, 0, COM_BUF_SIZE);
-		if (HAL_UART_Receive_DMA(huart_inst, (uint8_t*)str, COM_BUF_SIZE) != HAL_OK){
-			return 1;
-		}
-	}
-	return 0;
+	return EPROTONOSUPPORT;
 }
 
+static error_t _cmd_read_byte(char *str) {
+	char *arg_str = str + strlen(READ_BYTE_CMD);
+	uint32_t index = _fast_atou(&arg_str, RX_END_CHAR);
 
-error_t _tx_str(UART_HandleTypeDef *huart, const char *str){
-	HAL_StatusTypeDef status = HAL_UART_Transmit_DMA(huart, str, strlen(str));
-	if (status == HAL_BUSY){
-		HAL_UART_AbortTransmit(huart);
-		HAL_UART_AbortReceive(huart);
-		status = HAL_UART_Transmit_DMA(huart, INIT_MSG, sizeof(INIT_MSG));
-		if (status == HAL_BUSY){
-			return EBUSY;
-		}
-	}
-	if (status == HAL_ERROR){
-		return ENXIO;
-	}
-	if (status == HAL_OK){
+	if (index == ATOU_ERROR) {
+		return EINVAL;
+	} else if (index >= sizeof(regs)) {
+		return EOVERFLOW;
+	} else {
+		DIS_INT;
+		uint8_t data = regs.data_8[index];
+		EN_INT;
+		sprintf(str, "0,0x%02X%s", data, TX_END_STR);
 		return EOK;
 	}
 	return EUNKNOWN;
 }
 
-uint32_t _parse_command(char *str) {
-
-	if (memcmp(str, READ_BYTE_CMD, strlen(READ_BYTE_CMD)) == 0) {
-		return _cmd_read_byte(str);
-	}
-	else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0){
-		return _cmd_read_reg(str);
-	}
-	else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0){
-		return _cmd_write_reg(str);
-	}
-
-	return 1;
-}
-
-int32_t _cmd_read_byte(char *str) {
-	char *arg_str = str + strlen(READ_BYTE_CMD);
-	uint32_t index = _fast_atou(&arg_str, '\n');
-
-	if (index >= 0 && index < sizeof(regs)) {
-		DIS_INT;
-		uint8_t data = regs.data_8[index];
-		EN_INT;
-		sprintf(str, "0,0x%02X\r\n", data);
-		return 0;
-	}
-	return 1;
-	//return ERROR
-}
-
-int32_t _cmd_read_reg(char *str) {
+static error_t _cmd_read_reg(char *str) {
+	char *first_str = str;
 	char *arg_str = str + strlen(READ_REG_CMD);
 	uint32_t index = _fast_atou(&arg_str, ' ');
 
+	if (index == ATOU_ERROR) {
+		return EINVAL;
+	} else if (index >= sizeof(regs)) {
+		return EOVERFLOW;
+	} else {
+		uint32_t size = _fast_atou(&arg_str, RX_END_CHAR);
+		if (size == ATOU_ERROR) {
+			return EINVAL;
+		} else if ((size * 2) + strlen(TX_END_STR)
+				+ strlen("0,0x") >= COM_BUF_SIZE) {
+			return ERANGE;
+		} else {
+			uint8_t data;
+			str += sprintf(str, "%d,0x", EOK);
+			index += size;
+			if (index > sizeof(regs)) {
+				index -= sizeof(regs);
+			}
+			while (size > 0) {
+				index--;
+				size--;
 
-	if (index >= 0 && index < sizeof(regs)){
-		uint32_t size = _fast_atou(&arg_str, '\n');
-		if (size >= 1 && size < sizeof(regs)){
-			if ((size * 2) + 5 < COM_BUF_SIZE){
-				uint8_t data;
-				str += sprintf(str, "0,0x");
-				index += size;
-				if (index > sizeof(regs)){
-					index -= sizeof(regs);
+				DIS_INT;
+				data = regs.data_8[index];
+				EN_INT;
+
+				if (index == 0) {
+					index = sizeof(regs);
 				}
-				while (size > 0){
-					index--;
-					size--;
-
-
-					DIS_INT;
-					data = regs.data_8[index];
-					EN_INT;
-					if (index == 0){
-						index = sizeof(regs);
-					}
-
-
-					//if overflow then stop
+				//shouldn't need this but just to protect from any buffer overflow issues
+				if ((str - first_str) + 2 + strlen(TX_END_STR) < COM_BUF_SIZE) {
 					str += sprintf(str, "%02X", data);
+				} else {
+					return ERANGE;
 				}
-				sprintf(str, "\r\n");
-				return 0;
 			}
+			sprintf(str, TX_END_STR);
+			return EOK;
 		}
 	}
-
-	return 1;
-	//return ERROR
+	return EUNKNOWN;
 }
 
-int32_t _cmd_write_reg(char *str) {
-	uint32_t arg_count = _valid_args(str);
-	if (arg_count > 1){
-		char *arg_str = str + strlen(WRITE_REG_CMD);
-		uint32_t val;
-		uint32_t index = _fast_atou(&arg_str, ' ');
-		arg_count--;
-		while (arg_count != 1){
-			val = _fast_atou(&arg_str, ' ');
-			DIS_INT;
-			regs.data_8[index] = (uint8_t)val;
-			EN_INT;
-			index++;
-			if (index == sizeof(regs)){
-				index = 0;
-			}
+static error_t _cmd_write_reg(char *str) {
+	uint32_t arg_count = 0;
+	error_t err;
+
+	err = _valid_args(str, &arg_count);
+	if (err == EOK) {
+		if (arg_count < 2) {
+			err = ENODATA;
+		} else {
+			char *arg_str = str + strlen(WRITE_REG_CMD);
+			uint32_t val;
+			uint32_t index = _fast_atou(&arg_str, ' ');
 			arg_count--;
+			while (arg_count != 1) {
+				val = _fast_atou(&arg_str, ' ');
+				DIS_INT;
+				regs.data_8[index] = (uint8_t) val;
+				EN_INT;
+				index++;
+				if (index == sizeof(regs)) {
+					index = 0;
+				}
+				arg_count--;
+			}
+			val = _fast_atou(&arg_str, RX_END_CHAR);
+			DIS_INT;
+			regs.data_8[index] = (uint8_t) val;
+			EN_INT;
+			sprintf(str, "%d%s", EOK, TX_END_STR);
+			err = EOK;
 		}
-		val = _fast_atou(&arg_str, '\n');
-		DIS_INT;
-		regs.data_8[index] = (uint8_t)val;
-		EN_INT;
-		sprintf(str, "0\r\n");
-		return 0;
 	}
-	return 1;
-	//return ERROR
+	return err;
 }
 
-uint32_t _valid_args(char *str){
+static error_t _cmd_execute(char *str) {
+	return ENOSYS;
+}
+
+static error_t _valid_args(char *str, uint32_t *arg_count) {
 	char *arg_str = str + strlen(WRITE_REG_CMD);
 	uint32_t val;
-	uint32_t arg_count = 0;
 
-	while ((arg_str - str) < COM_BUF_SIZE - strlen(WRITE_REG_CMD)){
+	*arg_count = 0;
+	while ((arg_str - str) < COM_BUF_SIZE - strlen(WRITE_REG_CMD)) {
 		char *end_check_str = arg_str;
 		val = _fast_atou(&end_check_str, ' ');
-
-		if (val == ATOU_ERROR){
-			val = _fast_atou(&arg_str, '\n');
-			if (val >= 0 && val < BYTE_MAX){
-				return (arg_count + 1);
+		if (val == ATOU_ERROR) {
+			val = _fast_atou(&arg_str, RX_END_CHAR);
+			if (val == ATOU_ERROR) {
+				return EINVAL;
+			} else if (val >= BYTE_MAX) {
+				return EOVERFLOW;
+			} else {
+				(*arg_count)++;
+				return EOK;
 			}
-			else {
-				return 0;
-			}
-		}
-		else if (val < 0 && val >= BYTE_MAX){
-			return 0;
-		}
-		else{
+		} else if (val >= BYTE_MAX) {
+			return EOVERFLOW;
+		} else {
 			arg_str = end_check_str;
-			arg_count++;
+			(*arg_count)++;
 		}
 	}
-	return 0;
+	return EMSGSIZE;
 }
-
 
 //must be used under controlled conditions, no error catching or handling
 uint32_t _fast_atou(char **str, char terminator) {
 	uint32_t val = 0;
 	char *first_str = *str;
 
-	if ((*str)[0] == '0' && (*str)[1] == 'x'){
+	if (**str == terminator){
+		return ATOU_ERROR;
+	}
+
+	if ((*str)[0] == '0' && (*str)[1] == 'x') {
 		*str += 2;
 		while (**str != terminator) {
-			if ((uint32_t)(*str - first_str) >= ATOU_MAX_CHAR) {
+			if ((uint32_t) (*str - first_str) >= ATOU_MAX_CHAR) {
 				return ATOU_ERROR;
-			}
-			else if (**str >= '0' && **str <= '9') {
-				val = (val<<4) + (**str - '0');
+			} else if (IS_NUM(**str)) {
+				val = (val << 4) + (**str - '0');
 				(*str)++;
-			}
-			else if (**str >= 'a' && **str <= 'f') {
-				val = (val<<4) + (**str - 'a');
+			} else if (**str >= 'a' && **str <= 'f') {
+				val = (val << 4) + (**str - 'a');
 				(*str)++;
-			}
-			else if (**str >= 'A' && **str <= 'F') {
-				val = (val<<4) + (**str - 'A');
+			} else if (**str >= 'A' && **str <= 'F') {
+				val = (val << 4) + (**str - 'A');
 				(*str)++;
-			}
-			else{
+			} else {
 				return ATOU_ERROR;
 			}
 		}
-	}
-	else{
+	} else {
 		while (**str != terminator) {
-			if ((uint32_t)(*str - first_str) >= ATOU_MAX_CHAR) {
+			if ((uint32_t) (*str - first_str) >= ATOU_MAX_CHAR) {
 				return ATOU_ERROR;
-			} else if (**str < '0' && **str > '9') {
+			} else if (!IS_NUM(**str)) {
 				return ATOU_ERROR;
 			} else {
 				val = val * 10 + (**str - '0');
@@ -298,14 +344,6 @@ uint32_t _fast_atou(char **str, char terminator) {
 	return val;
 }
 
-inline int32_t _get_rx_amount(UART_HandleTypeDef *huart) {
+static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart) {
 	return (COM_BUF_SIZE - huart->hdmarx->Instance->CNDTR);
-}
-
-void _App_Com_Rx_OverflowCallback(){
-
-}
-
-void _App_Com_ErrorCallback(){
-
 }

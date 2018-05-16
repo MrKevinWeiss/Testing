@@ -11,18 +11,11 @@
 #define EN_INT
 #define DIS_INT
 
-
-int init_app_com(UART_HandleTypeDef *huart);
-int poll_com();
+error_t app_com_init(UART_HandleTypeDef *huart);
+error_t app_com_poll();
 
 void debug_print_com(char *str);
 
-typedef enum
-{
-  SC_OK       = 0x00,
-  SC_ABORT_TX_FAILED       = 0x01,
-  SC_ABORT_RX_FAILED       = 0x02,
 
-} SC_ERROR_CODE_t;
 
 #endif /* SERIAL_COM_H_ */
