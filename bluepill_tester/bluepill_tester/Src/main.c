@@ -44,6 +44,7 @@
 
 #include "mem_map.h"
 #include "serial_com.h"
+#include "app_i2c.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -69,7 +70,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-bpt_reg_t regs __attribute__ ((aligned (8))) = { 0 };
+bpt_reg_t reg __attribute__ ((aligned (8))) = { 0 };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -138,8 +139,8 @@ int main(void) {
 	MX_TIM4_Init();
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
-
-	app_com_init(&huart2, regs.data_8, sizeof(regs));
+	app_i2c_init(&hi2c1, reg.data_8, sizeof(reg));
+	app_com_init(&huart2, reg.data_8, sizeof(reg));
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

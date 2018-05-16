@@ -8,6 +8,8 @@
 #ifndef APP_I2C_H_
 #define APP_I2C_H_
 
-
+error_t app_i2c_init(I2C_HandleTypeDef *hi2c, uint8_t *p_reg, uint32_t size);
+void i2c_err(I2C_HandleTypeDef* hi2c);
+void i2c_it(I2C_HandleTypeDef* hi2c);
 
 #endif /* APP_I2C_H_ */
