@@ -139,7 +139,7 @@ int main(void) {
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
 
-	app_com_init(&huart2);
+	app_com_init(&huart2, regs.data_8, sizeof(regs));
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
