@@ -37,19 +37,7 @@
 #define SERIAL_COM_H_
 
 /* Defines -------------------------------------------------------------------*/
-/*
- * @brief	Enables interrupts.
- *
- */
-//TODO: Implement
-#define EN_INT
 
-/*
- * @brief	Disables interrupts.
- *
- */
-//TODO: Implement
-#define DIS_INT
 
 /* Public Functions ----------------------------------------------------------*/
 /**
@@ -57,7 +45,7 @@
  *
  * @retval errno defined error code.
  */
-error_t app_com_init(UART_HandleTypeDef *huart, uint8_t *p_reg, uint32_t size);
+error_t app_com_init(UART_HandleTypeDef *huart);
 
 /**
  * @brief Polls and parses the rx and tx buffers.

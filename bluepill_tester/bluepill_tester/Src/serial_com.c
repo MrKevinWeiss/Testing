@@ -43,6 +43,9 @@
 
 #include "stm32f1xx_hal.h"
 
+#include "app_common.h"
+#include "app_errno.h"
+#include "app.h"
 #include "serial_com.h"
 
 /* Defines -------------------------------------------------------------------*/
@@ -64,17 +67,7 @@
 #define IS_RX_WAITING(x)	(HAL_IS_BIT_SET(x, USART_CR3_DMAR))
 #define IS_NUM(x)			(x >= '0' && x <= '9')
 
-#ifndef EOK
-#define EOK 0
-#endif
 
-#ifndef EUNKNOWN
-#define EUNKNOWN (__ELASTERROR + 1)
-#endif
-
-#ifndef ENOACTION
-#define ENOACTION (__ELASTERROR + 2)
-#endif
 
 /* Private function prototypes -----------------------------------------------*/
 static error_t _tx_str(UART_HandleTypeDef *huart, char *str);
@@ -85,15 +78,13 @@ static error_t _parse_command(char *str);
 static error_t _cmd_read_byte(char *str);
 static error_t _cmd_read_reg(char *str);
 static error_t _cmd_write_reg(char *str);
-static error_t _cmd_execute(char *str);
+static error_t _cmd_execute();
 
 static error_t _valid_args(char *str, uint32_t *arg_count);
 static uint32_t _fast_atou(char **str, char terminator);
 static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart);
 
 /* Private variables ---------------------------------------------------------*/
-static uint8_t *reg = NULL;
-static uint32_t reg_size = 0;
 static UART_HandleTypeDef* huart_inst = NULL;
 
 /**
@@ -101,12 +92,10 @@ static UART_HandleTypeDef* huart_inst = NULL;
  *
  * @retval errno defined error code.
  */
-error_t app_com_init(UART_HandleTypeDef *huart, uint8_t *p_reg, uint32_t size) {
+error_t app_com_init(UART_HandleTypeDef *huart) {
 	error_t err = _tx_str(huart, INIT_MSG);
 	if (err == EOK) {
 		huart_inst = huart;
-		reg = p_reg;
-		reg_size = size;
 	}
 	return err;
 }
@@ -120,9 +109,7 @@ error_t app_com_poll() {
 	static char str[COM_BUF_SIZE] = { 0 };
 	error_t err = ENOACTION;
 
-	if (huart_inst == NULL || reg == NULL) {
-		err = ENODEV;
-	} else if (IS_RX_WAITING(huart_inst->Instance->CR3)) {
+	if (IS_RX_WAITING(huart_inst->Instance->CR3)) {
 		err = _rx_str(huart_inst, str);
 	} else if (huart_inst->TxXferCount == 0) {
 		if (str[COM_BUF_SIZE - 1] != 0) {
@@ -245,11 +232,12 @@ static error_t _cmd_read_byte(char *str) {
 
 	if (index == ATOU_ERROR) {
 		return EINVAL;
-	} else if (index >= reg_size) {
+	} else if (index >= get_reg_size()) {
 		return EOVERFLOW;
 	} else {
+		uint8_t data;
 		DIS_INT;
-		uint8_t data = reg[index];
+		read_reg(index, &data);
 		EN_INT;
 		sprintf(str, "0,0x%02X%s", data, TX_END_STR);
 		return EOK;
@@ -269,7 +257,7 @@ static error_t _cmd_read_reg(char *str) {
 
 	if (index == ATOU_ERROR) {
 		return EINVAL;
-	} else if (index >= reg_size) {
+	} else if (index >= get_reg_size()) {
 		return EOVERFLOW;
 	} else {
 		uint32_t size = _fast_atou(&arg_str, RX_END_CHAR);
@@ -282,19 +270,19 @@ static error_t _cmd_read_reg(char *str) {
 			uint8_t data;
 			str += sprintf(str, "%d,0x", EOK);
 			index += size;
-			if (index > reg_size) {
-				index -= reg_size;
+			if (index > get_reg_size()) {
+				index -= get_reg_size();
 			}
 			while (size > 0) {
 				index--;
 				size--;
 
 				DIS_INT;
-				data = reg[index];
+				read_reg(index, &data);
 				EN_INT;
 
 				if (index == 0) {
-					index = reg_size;
+					index = get_reg_size();
 				}
 				if ((str - first_str) + 2 + strlen(TX_END_STR) < COM_BUF_SIZE) {
 					str += sprintf(str, "%02X", data);
@@ -326,7 +314,7 @@ static error_t _cmd_write_reg(char *str) {
 			char *arg_str = str + strlen(WRITE_REG_CMD);
 			uint32_t val;
 			uint32_t index = _fast_atou(&arg_str, ' ');
-			if (index >= reg_size){
+			if (index >= get_reg_size()){
 				err = EOVERFLOW;
 			}
 			else {
@@ -334,20 +322,24 @@ static error_t _cmd_write_reg(char *str) {
 				while (arg_count != 1) {
 					val = _fast_atou(&arg_str, ' ');
 					DIS_INT;
-					reg[index] = (uint8_t) val;
+					err = write_cfg_reg(index, val);
 					EN_INT;
+					if (err != EOK){
+						return err;
+					}
 					index++;
-					if (index == reg_size) {
+					if (index == get_reg_size()) {
 						index = 0;
 					}
 					arg_count--;
 				}
 				val = _fast_atou(&arg_str, RX_END_CHAR);
 				DIS_INT;
-				reg[index] = (uint8_t) val;
+				err = write_cfg_reg(index, val);
 				EN_INT;
-				sprintf(str, "%d%s", EOK, TX_END_STR);
-				err = EOK;
+				if (err == EOK){
+					printf(str, "%d%s", EOK, TX_END_STR);
+				}
 			}
 		}
 	}
@@ -359,9 +351,9 @@ static error_t _cmd_write_reg(char *str) {
  *
  * @retval errno defined error code.
  */
-static error_t _cmd_execute(char *str) {
-	//TODO: Implement
-	return ENOSYS;
+static error_t _cmd_execute() {
+
+	return execute_reg_change();
 }
 
 /**

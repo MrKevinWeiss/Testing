@@ -1,0 +1,23 @@
+/*
+ * app_common.h
+ *
+ *  Created on: May 17, 2018
+ *      Author: kevinweiss
+ */
+
+#ifndef APP_COMMON_H_
+#define APP_COMMON_H_
+
+/*
+ * @brief	Enables interrupts.
+ *
+ */
+#define EN_INT __enable_irq()
+
+/*
+ * @brief	Disables interrupts.
+ *
+ */
+#define DIS_INT __disable_irq()
+
+#endif /* APP_COMMON_H_ */

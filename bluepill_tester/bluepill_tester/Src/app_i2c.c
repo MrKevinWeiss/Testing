@@ -82,21 +82,16 @@ error_t app_i2c_init(I2C_HandleTypeDef *hi2c, uint8_t *p_reg, uint32_t size) {
 }
 
 
-
 static HAL_StatusTypeDef I2C_Slave_ADDR(I2C_HandleTypeDef *hi2c)
 {
 	/* Transfer Direction requested by Master */
 	if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TRA) == RESET){
-		//master is tx
-		//slave will rx
 		set_index = true;
 	}
 	else{
-		//master is rx
-		//slave must tx
+		reg_index = start_reg_index;
 		hi2c->Instance->DR = reg[reg_index];
 		_add_index(&reg_index);
-		//wait(2);
 	}
 
 	return HAL_OK;
@@ -137,7 +132,6 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 		}
 		else if(((sr1itflags & I2C_FLAG_BTF) != RESET) &&
 				((itsources & I2C_IT_EVT) != RESET)){
-			//I2C_SlaveTransmit_BTF(hi2c);
 		}
 	}
 	else if(((sr1itflags & I2C_FLAG_RXNE) != RESET) &&
@@ -146,14 +140,10 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 		if (set_index == true){
 			set_index = false;
 			start_reg_index = hi2c->Instance->DR;
-			reg_index = start_reg_index;
-			//wait(3);
 		}
 		else{
 			reg[reg_index] = hi2c->Instance->DR;
 			_add_index(&reg_index);
-			//sr1itflags   = READ_REG(hi2c->Instance->SR1);
-			//wait(4);
 		}
 
     }
@@ -161,7 +151,6 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 	{
 		_add_index(&reg_index);
 		_add_index(&reg_index);
-		//wait(5);
 	}
 }
 

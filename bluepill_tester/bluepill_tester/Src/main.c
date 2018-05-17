@@ -140,7 +140,7 @@ int main(void) {
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
 	app_i2c_init(&hi2c1, reg.data_8, sizeof(reg));
-	app_com_init(&huart2, reg.data_8, sizeof(reg));
+	app_com_init(&huart2);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
