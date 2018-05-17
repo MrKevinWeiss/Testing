@@ -51,8 +51,6 @@
 /* Defines -------------------------------------------------------------------*/
 #define COM_BUF_SIZE	((uint16_t)256)
 
-#define INIT_MSG		"Initializing Communication\r\n"
-
 #define RX_END_CHAR		'\n'
 #define TX_END_STR		"\r\n"
 #define READ_BYTE_CMD	"rb "
@@ -93,7 +91,9 @@ static UART_HandleTypeDef* huart_inst = NULL;
  * @retval errno defined error code.
  */
 error_t app_com_init(UART_HandleTypeDef *huart) {
-	error_t err = _tx_str(huart, INIT_MSG);
+	char str[COM_BUF_SIZE] = {0};
+	sprintf(str, "Build Date: %s %s\r\n", __DATE__, __TIME__);
+	error_t err = _tx_str(huart, str);
 	if (err == EOK) {
 		huart_inst = huart;
 	}

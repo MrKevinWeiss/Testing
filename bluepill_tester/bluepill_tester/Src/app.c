@@ -11,26 +11,39 @@
 
 #include "stm32f1xx_hal.h"
 
+#include "build_defs.h"
 #include "app_errno.h"
 #include "app_typedef.h"
 #include "app.h"
 
 #define FW_REV	(10000U)
 
-
 static map_t reg = {0};
 
-error_t init_reg(){
-	HAL_GetUID(&reg.sys.sn);
+error_t _init_reg(){
+	HAL_GetUID((uint32_t*)&reg.sys.sn[0]);
 	reg.sys.fw_rev = FW_REV;
+
+	reg.sys.build_time.second = BUILD_SEC;
+	reg.sys.build_time.minute = BUILD_MIN;
+	reg.sys.build_time.hour = BUILD_HOUR;
+	reg.sys.build_time.day_of_month = BUILD_DAY;
+	reg.sys.build_time.month = BUILD_MONTH;
+	reg.sys.build_time.year = BUILD_YEAR;
+
+	reg.i2c.mode.addr_10_bit = 1;
+	reg.i2c.mode.general_call = 1;
+	reg.i2c.mode.no_clk_stretch = 1;
+
 	return EOK;
 }
 
 error_t execute_reg_change(){
 	static map_t prev_reg = {0};
-	static init = true;
+	static bool init = true;
 	if (init){
 		init = false;
+		_init_reg();
 	}
 	else if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))){
 

@@ -34,51 +34,54 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
-#include <errno.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 #include "stm32f1xx_hal.h"
 
+#include "app_errno.h"
+#include "app.h"
 #include "app_i2c.h"
 
-/* Defines -------------------------------------------------------------------*/
-#ifndef EOK
-#define EOK 0
-#endif
 
-#ifndef EUNKNOWN
-#define EUNKNOWN (__ELASTERROR + 1)
-#endif
+/* Defines -------------------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
 static void _add_index(uint32_t *i);
 static void _sub_index(uint32_t *i);
 /* Private variables ---------------------------------------------------------*/
-static uint8_t *reg = NULL;
-static uint32_t reg_size = 0;
 static uint32_t start_reg_index = 0;
 static uint32_t reg_index = 0;
 static bool set_index = false;
+static I2C_HandleTypeDef *hi2c_inst = NULL;
+
+
 /**
  * @brief
  *
  * @retval errno defined error code.
  */
-error_t app_i2c_init(I2C_HandleTypeDef *hi2c, uint8_t *p_reg, uint32_t size) {
-	if (hi2c == NULL || p_reg == NULL){
-		return ENODEV;
-	}
-	else{
-		reg = p_reg;
-		reg_size = size;
-		reg_index = 0;
-		start_reg_index = 0;
-		hi2c->Instance->CR1 |= I2C_CR1_ACK;
-		__HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
-		return EOK;
-	}
-	return EUNKNOWN;
+error_t app_i2c_execute(I2C_HandleTypeDef *hi2c) {
+	reg_index = 0;
+	start_reg_index = 0;
+	hi2c_inst = hi2c;
+	hi2c->Instance->CR1 |= I2C_CR1_ACK;
+	__HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
+	return EOK;
+}
+
+
+/**
+ * @brief
+ *
+ * @retval errno defined error code.
+ */
+error_t app_i2c_init(I2C_HandleTypeDef *hi2c) {
+	reg_index = 0;
+	start_reg_index = 0;
+	hi2c->Instance->CR1 |= I2C_CR1_ACK;
+	__HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
+	return EOK;
 }
 
 
@@ -90,7 +93,9 @@ static HAL_StatusTypeDef I2C_Slave_ADDR(I2C_HandleTypeDef *hi2c)
 	}
 	else{
 		reg_index = start_reg_index;
-		hi2c->Instance->DR = reg[reg_index];
+		uint8_t data;
+		read_reg(reg_index, &data);
+		hi2c->Instance->DR = data;
 		_add_index(&reg_index);
 	}
 
@@ -127,7 +132,9 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 		if(((sr1itflags & I2C_FLAG_TXE) != RESET) &&
 				((itsources & I2C_IT_BUF) != RESET) &&
 				((sr1itflags & I2C_FLAG_BTF) == RESET)){
-			hi2c->Instance->DR = reg[reg_index];
+			uint8_t data;
+			read_reg(reg_index, &data);
+			hi2c->Instance->DR = data;
 			_add_index(&reg_index);
 		}
 		else if(((sr1itflags & I2C_FLAG_BTF) != RESET) &&
@@ -142,7 +149,8 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 			start_reg_index = hi2c->Instance->DR;
 		}
 		else{
-			reg[reg_index] = hi2c->Instance->DR;
+			uint8_t data = hi2c->Instance->DR;
+			write_user_reg(reg_index, data);
 			_add_index(&reg_index);
 		}
 
@@ -156,14 +164,14 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 
 static void _add_index(uint32_t *i){
 	(*i)++;
-	if (*i == reg_size){
+	if (*i == get_reg_size()){
 		*i = 0;
 	}
 }
 
 static void _sub_index(uint32_t *i){
 	if (*i == 0){
-		*i = reg_size;
+		*i = get_reg_size();
 	}
 	(*i)--;
 }

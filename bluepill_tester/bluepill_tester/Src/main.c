@@ -40,11 +40,14 @@
 #include "stm32f1xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-#include <errno.h>
+
 
 #include "mem_map.h"
+#include "app_errno.h"
+
 #include "serial_com.h"
 #include "app_i2c.h"
+#include "app.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -70,7 +73,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-bpt_reg_t reg __attribute__ ((aligned (8))) = { 0 };
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,8 +142,9 @@ int main(void) {
 	MX_TIM4_Init();
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
-	app_i2c_init(&hi2c1, reg.data_8, sizeof(reg));
+	app_i2c_init(&hi2c1);
 	app_com_init(&huart2);
+	execute_reg_change();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

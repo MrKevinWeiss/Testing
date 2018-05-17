@@ -8,14 +8,23 @@
 #ifndef APP_TYPEDEF_H_
 #define APP_TYPEDEF_H_
 
+
+typedef struct i2c_mode_t_TAG
+{
+	#pragma pack(1)
+	uint8_t addr_10_bit		: 1;
+	uint8_t general_call	: 1;
+	uint8_t no_clk_stretch	: 1;
+}i2c_mode_t;
+
 //Author: Kevin Weiss
 //Revision: 1.00.00c
 // Max structure size definitions
+#define TIMESTAMP_T_SIZE 8
 #define SYS_T_SIZE 32
 #define I2C_T_SIZE 16
 #define SPI_T_SIZE 8
 #define UART_T_SIZE 8
-#define RTC_T_SIZE 8
 #define ADC_T_SIZE 8
 #define PWM_T_SIZE 8
 #define TMR_T_SIZE 8
@@ -23,17 +32,27 @@
 
 
 // Array size definitions
+#define SN_AMOUNT 12
 #define ADC_AMOUNT 2
 
 
 // Array offset definitions
+#define TIMESTAMP_T_SECOND_OFFSET 0
+#define TIMESTAMP_T_MINUTE_OFFSET 1
+#define TIMESTAMP_T_HOUR_OFFSET 2
+#define TIMESTAMP_T_DAY_OF_MONTH_OFFSET 3
+#define TIMESTAMP_T_DAY_OF_WEEK_OFFSET 4
+#define TIMESTAMP_T_MONTH_OFFSET 5
+#define TIMESTAMP_T_YEAR_OFFSET 6
+#define TIMESTAMP_T_RES_OFFSET 7
+
 #define SYS_T_SN_OFFSET 0
-#define SYS_T_FW_REV_OFFSET 4
-#define SYS_T_BUILD_TIME_OFFSET 8
-#define SYS_T_ECHO_OFFSET 16
-#define SYS_T_ECHO_P1_OFFSET 17
-#define SYS_T_CONST_TEST_OFFSET 18
-#define SYS_T_RES_OFFSET 20
+#define SYS_T_FW_REV_OFFSET 12
+#define SYS_T_BUILD_TIME_OFFSET 16
+#define SYS_T_ECHO_OFFSET 24
+#define SYS_T_ECHO_P1_OFFSET 25
+#define SYS_T_CONST_TEST_OFFSET 26
+#define SYS_T_RES_OFFSET 28
 
 #define I2C_T_SLAVE_ADDR_1_OFFSET 0
 #define I2C_T_SLAVE_ADDR_2_OFFSET 2
@@ -50,15 +69,6 @@
 #define SPI_T_RES_OFFSET 4
 
 #define UART_T_RES_OFFSET 0
-
-#define RTC_T_SECOND_OFFSET 0
-#define RTC_T_MINUTE_OFFSET 1
-#define RTC_T_HOUR_OFFSET 2
-#define RTC_T_DAY_OF_MONTH_OFFSET 3
-#define RTC_T_DAY_OF_WEEK_OFFSET 4
-#define RTC_T_MONTH_OFFSET 5
-#define RTC_T_YEAR_OFFSET 6
-#define RTC_T_RES_OFFSET 7
 
 #define ADC_T_RES_OFFSET 0
 
@@ -78,19 +88,36 @@
 
 
 
+typedef union timestamp_t_TAG
+{
+	uint8_t data8[TIMESTAMP_T_SIZE];
+	struct
+	{
+		#pragma pack(1)
+		uint8_t second;
+		uint8_t minute;
+		uint8_t hour;
+		uint8_t day_of_month;
+		uint8_t day_of_week;
+		uint8_t month;
+		uint8_t year;
+		uint8_t res[1];
+	};
+}timestamp_t;
+
 typedef union sys_t_TAG
 {
 	uint8_t data8[SYS_T_SIZE];
 	struct
 	{
 		#pragma pack(1)
-		uint32_t sn;
+		uint8_t sn[SN_AMOUNT];
 		uint32_t fw_rev;
-		uint64_t build_time;
+		timestamp_t build_time;
 		uint8_t echo;
 		uint8_t echo_p1;
 		uint16_t const_test;
-		uint8_t res[12];
+		uint8_t res[4];
 	};
 }sys_t;
 
@@ -104,7 +131,7 @@ typedef union i2c_t_TAG
 		uint16_t slave_addr_2;
 		uint8_t increment_mem;
 		uint8_t error;
-		uint8_t mode;
+		i2c_mode_t mode;
 		uint8_t inject_failure_mode;
 		uint32_t data;
 		uint8_t res[4];
@@ -133,23 +160,6 @@ typedef union uart_t_TAG
 		uint8_t res[8];
 	};
 }uart_t;
-
-typedef union rtc_t_TAG
-{
-	uint8_t data8[RTC_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
-		uint8_t second;
-		uint8_t minute;
-		uint8_t hour;
-		uint8_t day_of_month;
-		uint8_t day_of_week;
-		uint8_t month;
-		uint8_t year;
-		uint8_t res[1];
-	};
-}rtc_t;
 
 typedef union adc_t_TAG
 {
@@ -191,7 +201,7 @@ typedef union map_t_TAG
 		i2c_t i2c;
 		spi_t spi;
 		uart_t uart;
-		rtc_t rtc;
+		timestamp_t rtc;
 		adc_t adc[ADC_AMOUNT];
 		pwm_t pwm;
 		tmr_t tmr;
