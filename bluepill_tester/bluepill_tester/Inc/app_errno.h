@@ -8,8 +8,6 @@
 #ifndef APP_ERRNO_H_
 #define APP_ERRNO_H_
 
-#include <errno.h>
-
 #ifndef EOK
 #define EOK 0
 #endif

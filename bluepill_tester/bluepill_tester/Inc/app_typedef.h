@@ -8,6 +8,12 @@
 #ifndef APP_TYPEDEF_H_
 #define APP_TYPEDEF_H_
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <errno.h>
+
+#include "app_errno.h"
+
 
 typedef struct i2c_mode_t_TAG
 {
@@ -18,17 +24,17 @@ typedef struct i2c_mode_t_TAG
 }i2c_mode_t;
 
 //Author: Kevin Weiss
-//Revision: 1.00.00c
+//Revision: 1.00.00d
 // Max structure size definitions
 #define TIMESTAMP_T_SIZE 8
 #define SYS_T_SIZE 32
 #define I2C_T_SIZE 16
-#define SPI_T_SIZE 8
-#define UART_T_SIZE 8
-#define ADC_T_SIZE 8
-#define PWM_T_SIZE 8
-#define TMR_T_SIZE 8
-#define MAP_T_SIZE 128
+#define SPI_T_SIZE 16
+#define UART_T_SIZE 16
+#define ADC_T_SIZE 16
+#define PWM_T_SIZE 16
+#define TMR_T_SIZE 16
+#define MAP_T_SIZE 256
 
 
 // Array size definitions
@@ -49,42 +55,56 @@ typedef struct i2c_mode_t_TAG
 #define SYS_T_SN_OFFSET 0
 #define SYS_T_FW_REV_OFFSET 12
 #define SYS_T_BUILD_TIME_OFFSET 16
-#define SYS_T_ECHO_OFFSET 24
-#define SYS_T_ECHO_P1_OFFSET 25
-#define SYS_T_CONST_TEST_OFFSET 26
+#define SYS_T_DEVICE_NUM_OFFSET 24
 #define SYS_T_RES_OFFSET 28
 
-#define I2C_T_SLAVE_ADDR_1_OFFSET 0
-#define I2C_T_SLAVE_ADDR_2_OFFSET 2
-#define I2C_T_INCREMENT_MEM_OFFSET 4
-#define I2C_T_ERROR_OFFSET 5
-#define I2C_T_MODE_OFFSET 6
-#define I2C_T_INJECT_FAILURE_MODE_OFFSET 7
-#define I2C_T_DATA_OFFSET 8
-#define I2C_T_RES_OFFSET 12
+#define I2C_T_MODE_OFFSET 0
+#define I2C_T_ERROR_CODE_OFFSET 1
+#define I2C_T_CLK_STRETCH_DELAY_OFFSET 3
+#define I2C_T_INJECT_FAILURE_MODE_OFFSET 5
+#define I2C_T_SLAVE_ADDR_1_OFFSET 6
+#define I2C_T_SLAVE_ADDR_2_OFFSET 8
+#define I2C_T_RES_OFFSET 10
 
 #define SPI_T_MODE_OFFSET 0
-#define SPI_T_DATA_8_OFFSET 1
-#define SPI_T_DATA_16_OFFSET 2
-#define SPI_T_RES_OFFSET 4
+#define SPI_T_ERROR_CODE_OFFSET 1
+#define SPI_T_RES_OFFSET 5
 
-#define UART_T_RES_OFFSET 0
+#define UART_T_MODE_OFFSET 0
+#define UART_T_ERROR_CODE_OFFSET 1
+#define UART_T_BAUD_OFFSET 3
+#define UART_T_REG_OUTPUT_OFFSET 7
+#define UART_T_SIZE_OFFSET 8
+#define UART_T_RES_OFFSET 9
 
-#define ADC_T_RES_OFFSET 0
+#define ADC_T_MODE_OFFSET 0
+#define ADC_T_ERROR_CODE_OFFSET 1
+#define ADC_T_SAMPLE_RATE_OFFSET 3
+#define ADC_T_VALUE_OFFSET 4
+#define ADC_T_RES_OFFSET 8
 
-#define PWM_T_RES_OFFSET 0
+#define PWM_T_MODE_OFFSET 0
+#define PWM_T_ERROR_CODE_OFFSET 1
+#define PWM_T_DUTY_OFFSET 3
+#define PWM_T_FREQ_OFFSET 4
+#define PWM_T_RES_OFFSET 8
 
-#define TMR_T_RES_OFFSET 0
+#define TMR_T_MODE_OFFSET 0
+#define TMR_T_ERROR_CODE_OFFSET 1
+#define TMR_T_DUTY_OFFSET 3
+#define TMR_T_FREQ_OFFSET 4
+#define TMR_T_HI_US_OFFSET 8
+#define TMR_T_LO_US_OFFSET 12
 
 #define MAP_T_SYS_OFFSET 0
 #define MAP_T_I2C_OFFSET 32
 #define MAP_T_SPI_OFFSET 48
-#define MAP_T_UART_OFFSET 56
-#define MAP_T_RTC_OFFSET 64
-#define MAP_T_ADC_OFFSET 72
-#define MAP_T_PWM_OFFSET 88
-#define MAP_T_TMR_OFFSET 96
-#define MAP_T_RES_OFFSET 104
+#define MAP_T_UART_OFFSET 64
+#define MAP_T_RTC_OFFSET 80
+#define MAP_T_ADC_OFFSET 88
+#define MAP_T_PWM_OFFSET 120
+#define MAP_T_TMR_OFFSET 136
+#define MAP_T_RES_OFFSET 152
 
 
 
@@ -114,9 +134,7 @@ typedef union sys_t_TAG
 		uint8_t sn[SN_AMOUNT];
 		uint32_t fw_rev;
 		timestamp_t build_time;
-		uint8_t echo;
-		uint8_t echo_p1;
-		uint16_t const_test;
+		uint32_t device_num;
 		uint8_t res[4];
 	};
 }sys_t;
@@ -127,14 +145,13 @@ typedef union i2c_t_TAG
 	struct
 	{
 		#pragma pack(1)
+		i2c_mode_t mode;
+		uint16_t error_code;
+		uint16_t clk_stretch_delay;
+		uint8_t inject_failure_mode;
 		uint16_t slave_addr_1;
 		uint16_t slave_addr_2;
-		uint8_t increment_mem;
-		uint8_t error;
-		i2c_mode_t mode;
-		uint8_t inject_failure_mode;
-		uint32_t data;
-		uint8_t res[4];
+		uint8_t res[6];
 	};
 }i2c_t;
 
@@ -145,9 +162,8 @@ typedef union spi_t_TAG
 	{
 		#pragma pack(1)
 		uint8_t mode;
-		uint8_t data_8;
-		uint16_t data_16;
-		uint8_t res[4];
+		uint32_t error_code;
+		uint8_t res[11];
 	};
 }spi_t;
 
@@ -157,7 +173,12 @@ typedef union uart_t_TAG
 	struct
 	{
 		#pragma pack(1)
-		uint8_t res[8];
+		uint8_t mode;
+		uint16_t error_code;
+		uint32_t baud;
+		uint8_t reg_output;
+		uint8_t size;
+		uint8_t res[7];
 	};
 }uart_t;
 
@@ -167,6 +188,10 @@ typedef union adc_t_TAG
 	struct
 	{
 		#pragma pack(1)
+		uint8_t mode;
+		uint16_t error_code;
+		uint8_t sample_rate;
+		uint32_t value;
 		uint8_t res[8];
 	};
 }adc_t;
@@ -177,6 +202,10 @@ typedef union pwm_t_TAG
 	struct
 	{
 		#pragma pack(1)
+		uint8_t mode;
+		uint16_t error_code;
+		uint8_t duty;
+		uint32_t freq;
 		uint8_t res[8];
 	};
 }pwm_t;
@@ -187,7 +216,12 @@ typedef union tmr_t_TAG
 	struct
 	{
 		#pragma pack(1)
-		uint8_t res[8];
+		uint8_t mode;
+		uint16_t error_code;
+		uint8_t duty;
+		uint32_t freq;
+		uint32_t hi_us;
+		uint32_t lo_us;
 	};
 }tmr_t;
 
@@ -205,7 +239,7 @@ typedef union map_t_TAG
 		adc_t adc[ADC_AMOUNT];
 		pwm_t pwm;
 		tmr_t tmr;
-		uint8_t res[24];
+		uint8_t res[104];
 	};
 }map_t;
 

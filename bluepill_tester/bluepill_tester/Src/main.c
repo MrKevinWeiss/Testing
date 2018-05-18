@@ -42,8 +42,8 @@
 /* USER CODE BEGIN Includes */
 
 
-#include "mem_map.h"
 #include "app_errno.h"
+#include "app_typedef.h"
 
 #include "serial_com.h"
 #include "app_i2c.h"

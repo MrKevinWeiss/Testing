@@ -9,6 +9,6 @@
 #define APP_DEFAULTS_H_
 
 #define DEFAULT_I2C_SLAVE_ID_1	0x55
-#define DEFAULT_I2C_SLAVE_ID_2	0x7E
+#define DEFAULT_I2C_SLAVE_ID_2	0x7F
 
 #endif /* APP_DEFAULTS_H_ */

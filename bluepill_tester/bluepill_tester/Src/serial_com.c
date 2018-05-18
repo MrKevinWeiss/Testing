@@ -37,19 +37,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
-#include <errno.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 #include "stm32f1xx_hal.h"
 
+#include "app_typedef.h"
 #include "app_common.h"
-#include "app_errno.h"
 #include "app.h"
 #include "serial_com.h"
 
 /* Defines -------------------------------------------------------------------*/
-#define COM_BUF_SIZE	((uint16_t)256)
+#define COM_BUF_SIZE	((uint16_t)1024)//((uint16_t)256)
 
 #define RX_END_CHAR		'\n'
 #define TX_END_STR		"\r\n"
@@ -338,7 +335,7 @@ static error_t _cmd_write_reg(char *str) {
 				err = write_cfg_reg(index, val);
 				EN_INT;
 				if (err == EOK){
-					printf(str, "%d%s", EOK, TX_END_STR);
+					sprintf(str, "%d%s", EOK, TX_END_STR);
 				}
 			}
 		}

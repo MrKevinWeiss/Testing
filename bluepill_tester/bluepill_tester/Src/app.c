@@ -6,14 +6,14 @@
  */
 
 #include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 #include "stm32f1xx_hal.h"
 
-#include "build_defs.h"
-#include "app_errno.h"
+
 #include "app_typedef.h"
+#include "build_defs.h"
+#include "app_defaults.h"
+#include "app_i2c.h"
 #include "app.h"
 
 #define FW_REV	(10000U)
@@ -31,9 +31,8 @@ error_t _init_reg(){
 	reg.sys.build_time.month = BUILD_MONTH;
 	reg.sys.build_time.year = BUILD_YEAR;
 
-	reg.i2c.mode.addr_10_bit = 1;
-	reg.i2c.mode.general_call = 1;
-	reg.i2c.mode.no_clk_stretch = 1;
+	reg.i2c.slave_addr_1 = DEFAULT_I2C_SLAVE_ID_1;
+	reg.i2c.slave_addr_2 = DEFAULT_I2C_SLAVE_ID_2;
 
 	return EOK;
 }
@@ -46,7 +45,7 @@ error_t execute_reg_change(){
 		_init_reg();
 	}
 	else if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))){
-
+		app_i2c_execute(&reg.i2c);
 	}
 
 	memcpy(&prev_reg, &reg, sizeof(reg));

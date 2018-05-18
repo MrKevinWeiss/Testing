@@ -36,7 +36,7 @@
 #include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN 0 */
-#include <errno.h>
+#include "app_typedef.h"
 
 #include "app_i2c.h"
 /* USER CODE END 0 */

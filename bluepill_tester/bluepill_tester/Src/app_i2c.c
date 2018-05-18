@@ -34,17 +34,17 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 #include "stm32f1xx_hal.h"
 
-#include "app_errno.h"
+#include "app_typedef.h"
 #include "app.h"
 #include "app_i2c.h"
 
 
 /* Defines -------------------------------------------------------------------*/
+#define CONVERT_7ADDR(x)	((x<<1)&0xFF)
+#define CONVERT_10ADDR(x)	((x<<1)&0x07FF)
 
 /* Private function prototypes -----------------------------------------------*/
 static void _add_index(uint32_t *i);
@@ -61,12 +61,42 @@ static I2C_HandleTypeDef *hi2c_inst = NULL;
  *
  * @retval errno defined error code.
  */
-error_t app_i2c_execute(I2C_HandleTypeDef *hi2c) {
-	reg_index = 0;
-	start_reg_index = 0;
-	hi2c_inst = hi2c;
-	hi2c->Instance->CR1 |= I2C_CR1_ACK;
-	__HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
+error_t app_i2c_execute(i2c_t *i2c) {
+
+	if (HAL_I2C_DeInit(hi2c_inst) != HAL_OK) {
+		//_Error_Handler(__FILE__, __LINE__);
+	}
+	if (i2c->mode.addr_10_bit == 0){
+		hi2c_inst->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+		hi2c_inst->Init.OwnAddress1 = CONVERT_7ADDR(i2c->slave_addr_1);
+		hi2c_inst->Init.OwnAddress2 = CONVERT_7ADDR(i2c->slave_addr_2);
+	}
+	else {
+		hi2c_inst->Init.AddressingMode = I2C_ADDRESSINGMODE_10BIT;
+		hi2c_inst->Init.OwnAddress1 = CONVERT_10ADDR(i2c->slave_addr_1);
+		hi2c_inst->Init.OwnAddress2 = CONVERT_10ADDR(i2c->slave_addr_2);
+	}
+
+	if (i2c->mode.no_clk_stretch == 0){
+		hi2c_inst->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+	}
+	else {
+		hi2c_inst->Init.NoStretchMode = I2C_NOSTRETCH_ENABLE;
+	}
+
+	if (i2c->mode.general_call == 0){
+		hi2c_inst->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+	}
+	else {
+		hi2c_inst->Init.GeneralCallMode = I2C_GENERALCALL_ENABLE;
+	}
+
+	if (HAL_I2C_Init(hi2c_inst) != HAL_OK) {
+		//_Error_Handler(__FILE__, __LINE__);
+	}
+
+	hi2c_inst->Instance->CR1 |= I2C_CR1_ACK;
+	__HAL_I2C_ENABLE_IT(hi2c_inst, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 	return EOK;
 }
 
@@ -79,6 +109,7 @@ error_t app_i2c_execute(I2C_HandleTypeDef *hi2c) {
 error_t app_i2c_init(I2C_HandleTypeDef *hi2c) {
 	reg_index = 0;
 	start_reg_index = 0;
+	hi2c_inst = hi2c;
 	hi2c->Instance->CR1 |= I2C_CR1_ACK;
 	__HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 	return EOK;
