@@ -11,6 +11,7 @@
 
 
 #include "app_typedef.h"
+#include "app_common.h"
 #include "build_defs.h"
 #include "app_defaults.h"
 #include "app_i2c.h"
@@ -55,7 +56,6 @@ error_t execute_reg_change(){
 }
 
 
-
 uint32_t get_reg_size(){
 	return sizeof(reg);
 }
@@ -98,3 +98,4 @@ error_t write_user_reg(uint32_t index, uint8_t data){
 	}
 	return EUNKNOWN;
 }
+

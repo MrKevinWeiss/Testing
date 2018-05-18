@@ -54,6 +54,8 @@ static uint32_t start_reg_index = 0;
 static uint32_t reg_index = 0;
 static bool set_index = false;
 static I2C_HandleTypeDef *hi2c_inst = NULL;
+static uint16_t clk_delay = 0;
+//TODO: Add delay here from the execute function
 
 
 /**
@@ -63,9 +65,11 @@ static I2C_HandleTypeDef *hi2c_inst = NULL;
  */
 error_t app_i2c_execute(i2c_t *i2c) {
 	//TODO: Add range checks
-	if (HAL_I2C_DeInit(hi2c_inst) != HAL_OK) {
+	//__HAL_RCC_I2C1_CLK_ENABLE();
+	//if (HAL_I2C_DeInit(hi2c_inst) != HAL_OK) {
 		//_Error_Handler(__FILE__, __LINE__);
-	}
+	//}
+	__HAL_I2C_DISABLE_IT(hi2c_inst, I2C_IT_EVT | I2C_IT_ERR);
 	if (i2c->mode.addr_10_bit == 0){
 		hi2c_inst->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
 		hi2c_inst->Init.OwnAddress1 = CONVERT_7ADDR(i2c->slave_addr_1);
@@ -91,7 +95,10 @@ error_t app_i2c_execute(i2c_t *i2c) {
 		hi2c_inst->Init.GeneralCallMode = I2C_GENERALCALL_ENABLE;
 	}
 
+	clk_delay = i2c->clk_stretch_delay;
+
 	if (HAL_I2C_Init(hi2c_inst) != HAL_OK) {
+		//must handle multiple repeats maybe?
 		//_Error_Handler(__FILE__, __LINE__);
 	}
 
@@ -124,6 +131,9 @@ static HAL_StatusTypeDef I2C_Slave_ADDR(I2C_HandleTypeDef *hi2c)
 	}
 	else{
 		reg_index = start_reg_index;
+		if (clk_delay != 0){
+			delay_us(clk_delay);
+		}
 		uint8_t data;
 		read_reg(reg_index, &data);
 		hi2c->Instance->DR = data;

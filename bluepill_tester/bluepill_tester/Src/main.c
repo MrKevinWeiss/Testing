@@ -125,7 +125,7 @@ int main(void) {
 	SystemClock_Config();
 
 	/* USER CODE BEGIN SysInit */
-
+	__HAL_RCC_I2C1_CLK_ENABLE(); /* Prevents i2c clk from toggling at init */
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
