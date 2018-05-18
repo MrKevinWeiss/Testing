@@ -20,8 +20,14 @@ uint32_t _get_us(void) {
 }
 
 void delay_us(uint16_t micros) {
-	uint32_t start = _get_us();
-	while (_get_us() - start < (uint32_t) micros) {
-		asm("nop");
+	//uint32_t start = _get_us();
+	//while (_get_us() - start < (uint32_t) micros) {
+	//	asm("nop");
+	//}
+	static int ii = 0;
+	for (int i = 0; i < micros; i++){
+
+		ii++;
 	}
+	ii = 0;
 }

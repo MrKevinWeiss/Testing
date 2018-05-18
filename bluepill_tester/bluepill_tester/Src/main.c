@@ -149,9 +149,9 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	int i = 0;
 	while (1) {
-		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
-		}
+		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {}
 		app_com_poll();
 		/* USER CODE END WHILE */
 

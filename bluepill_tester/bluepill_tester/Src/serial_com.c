@@ -383,13 +383,13 @@ static error_t _valid_args(char *str, uint32_t *arg_count) {
 			val = _fast_atou(&arg_str, RX_END_CHAR);
 			if (val == ATOU_ERROR) {
 				return EINVAL;
-			} else if (val >= BYTE_MAX) {
+			} else if (val > BYTE_MAX) {
 				return EOVERFLOW;
 			} else {
 				(*arg_count)++;
 				return EOK;
 			}
-		} else if (val >= BYTE_MAX) {
+		} else if (val > BYTE_MAX) {
 			return EOVERFLOW;
 		} else {
 			arg_str = end_check_str;
@@ -426,10 +426,10 @@ uint32_t _fast_atou(char **str, char terminator) {
 				val = (val << 4) + (**str - '0');
 				(*str)++;
 			} else if (**str >= 'a' && **str <= 'f') {
-				val = (val << 4) + (**str - 'a');
+				val = (val << 4) + (**str - 'a' + 10);
 				(*str)++;
 			} else if (**str >= 'A' && **str <= 'F') {
-				val = (val << 4) + (**str - 'A');
+				val = (val << 4) + (**str - 'A' + 10);
 				(*str)++;
 			} else {
 				return ATOU_ERROR;
