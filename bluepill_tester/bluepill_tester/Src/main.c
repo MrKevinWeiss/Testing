@@ -40,10 +40,8 @@
 #include "stm32f1xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
-
-#include "app_errno.h"
 #include "app_typedef.h"
+#include "app_common.h"
 
 #include "serial_com.h"
 #include "app_i2c.h"
@@ -99,6 +97,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+
+
 
 /* USER CODE END 0 */
 

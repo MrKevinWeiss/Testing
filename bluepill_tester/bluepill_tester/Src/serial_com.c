@@ -74,7 +74,7 @@ static error_t _parse_command(char *str);
 static error_t _cmd_read_byte(char *str);
 static error_t _cmd_read_reg(char *str);
 static error_t _cmd_write_reg(char *str);
-static error_t _cmd_execute();
+static error_t _cmd_execute(char *str);
 static error_t _cmd_reset();
 
 static error_t _valid_args(char *str, uint32_t *arg_count);
@@ -218,7 +218,7 @@ static error_t _parse_command(char *str) {
 		return _cmd_write_reg(str);
 	}
 	else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
-		return _cmd_execute();
+		return _cmd_execute(str);
 	}
 	else if (memcmp(str, RESET_CMD, strlen(RESET_CMD)) == 0) {
 		return _cmd_reset();
@@ -357,9 +357,13 @@ static error_t _cmd_write_reg(char *str) {
  *
  * @retval errno defined error code.
  */
-static error_t _cmd_execute() {
+static error_t _cmd_execute(char *str) {
 
-	return execute_reg_change();
+	error_t err = execute_reg_change();
+	if (err == EOK){
+		sprintf(str, "%d%s", EOK, TX_END_STR);
+	}
+	return err;
 }
 
 /**

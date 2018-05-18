@@ -62,7 +62,7 @@ static I2C_HandleTypeDef *hi2c_inst = NULL;
  * @retval errno defined error code.
  */
 error_t app_i2c_execute(i2c_t *i2c) {
-
+	//TODO: Add range checks
 	if (HAL_I2C_DeInit(hi2c_inst) != HAL_OK) {
 		//_Error_Handler(__FILE__, __LINE__);
 	}
@@ -74,7 +74,7 @@ error_t app_i2c_execute(i2c_t *i2c) {
 	else {
 		hi2c_inst->Init.AddressingMode = I2C_ADDRESSINGMODE_10BIT;
 		hi2c_inst->Init.OwnAddress1 = CONVERT_10ADDR(i2c->slave_addr_1);
-		hi2c_inst->Init.OwnAddress2 = CONVERT_10ADDR(i2c->slave_addr_2);
+		hi2c_inst->Init.OwnAddress2 = CONVERT_7ADDR(i2c->slave_addr_2);
 	}
 
 	if (i2c->mode.no_clk_stretch == 0){

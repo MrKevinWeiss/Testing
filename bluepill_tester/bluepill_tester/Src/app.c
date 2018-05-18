@@ -20,19 +20,19 @@
 
 static map_t reg = {0};
 
-error_t _init_reg(){
-	HAL_GetUID((uint32_t*)&reg.sys.sn[0]);
+error_t _init_reg(map_t *reg_to_init){
+	HAL_GetUID((uint32_t*)&reg_to_init->sys.sn[0]);
 	reg.sys.fw_rev = FW_REV;
 
-	reg.sys.build_time.second = BUILD_SEC;
-	reg.sys.build_time.minute = BUILD_MIN;
-	reg.sys.build_time.hour = BUILD_HOUR;
-	reg.sys.build_time.day_of_month = BUILD_DAY;
-	reg.sys.build_time.month = BUILD_MONTH;
-	reg.sys.build_time.year = BUILD_YEAR;
+	reg_to_init->sys.build_time.second = BUILD_SEC;
+	reg_to_init->sys.build_time.minute = BUILD_MIN;
+	reg_to_init->sys.build_time.hour = BUILD_HOUR;
+	reg_to_init->sys.build_time.day_of_month = BUILD_DAY;
+	reg_to_init->sys.build_time.month = BUILD_MONTH;
+	reg_to_init->sys.build_time.year = BUILD_YEAR;
 
-	reg.i2c.slave_addr_1 = DEFAULT_I2C_SLAVE_ID_1;
-	reg.i2c.slave_addr_2 = DEFAULT_I2C_SLAVE_ID_2;
+	reg_to_init->i2c.slave_addr_1 = DEFAULT_I2C_SLAVE_ID_1;
+	reg_to_init->i2c.slave_addr_2 = DEFAULT_I2C_SLAVE_ID_2;
 
 	return EOK;
 }
@@ -40,11 +40,13 @@ error_t _init_reg(){
 error_t execute_reg_change(){
 	static map_t prev_reg = {0};
 	static bool init = true;
+
 	if (init){
 		init = false;
-		_init_reg();
+		_init_reg(&reg);
 	}
-	else if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))){
+
+	if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))){
 		app_i2c_execute(&reg.i2c);
 	}
 
