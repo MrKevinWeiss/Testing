@@ -54,6 +54,7 @@
 #define READ_REG_CMD	"rr "
 #define WRITE_REG_CMD	"wr "
 #define EXECUTE_CMD		"ex\n"
+#define RESET_CMD		"mcu_rst\n"
 
 #define ATOU_MAX_CHAR	5
 #define ATOU_ERROR		0xFFFFFFFF
@@ -74,6 +75,7 @@ static error_t _cmd_read_byte(char *str);
 static error_t _cmd_read_reg(char *str);
 static error_t _cmd_write_reg(char *str);
 static error_t _cmd_execute();
+static error_t _cmd_reset();
 
 static error_t _valid_args(char *str, uint32_t *arg_count);
 static uint32_t _fast_atou(char **str, char terminator);
@@ -208,13 +210,20 @@ static error_t _tx_str(UART_HandleTypeDef *huart, char *str) {
 static error_t _parse_command(char *str) {
 	if (memcmp(str, READ_BYTE_CMD, strlen(READ_BYTE_CMD)) == 0) {
 		return _cmd_read_byte(str);
-	} else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
-		return _cmd_read_reg(str);
-	} else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0) {
-		return _cmd_write_reg(str);
-	} else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
-		return _cmd_execute(str);
 	}
+	else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
+		return _cmd_read_reg(str);
+	}
+	else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0) {
+		return _cmd_write_reg(str);
+	}
+	else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
+		return _cmd_execute();
+	}
+	else if (memcmp(str, RESET_CMD, strlen(RESET_CMD)) == 0) {
+		return _cmd_reset();
+	}
+
 	return EPROTONOSUPPORT;
 }
 
@@ -384,6 +393,11 @@ static error_t _valid_args(char *str, uint32_t *arg_count) {
 		}
 	}
 	return EMSGSIZE;
+}
+
+static error_t _cmd_reset(){
+	SOFT_RESET;
+	return EUNKNOWN;
 }
 
 /**

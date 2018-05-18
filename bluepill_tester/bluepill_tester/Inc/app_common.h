@@ -20,4 +20,11 @@
  */
 #define DIS_INT __disable_irq()
 
+/*
+ * @brief	Disables interrupts.
+ *
+ */
+#define SOFT_RESET NVIC_SystemReset()
+
+
 #endif /* APP_COMMON_H_ */
