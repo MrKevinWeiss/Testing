@@ -289,10 +289,11 @@ void I2C1_EV_IRQHandler(void) {
 void I2C1_ER_IRQHandler(void) {
 	/* USER CODE BEGIN I2C1_ER_IRQn 0 */
 	i2c_err(&hi2c1);
+#if 0
 	/* USER CODE END I2C1_ER_IRQn 0 */
 	HAL_I2C_ER_IRQHandler(&hi2c1);
 	/* USER CODE BEGIN I2C1_ER_IRQn 1 */
-
+#endif
 	/* USER CODE END I2C1_ER_IRQn 1 */
 }
 

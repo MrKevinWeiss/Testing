@@ -34,6 +34,7 @@ error_t _init_reg(map_t *reg_to_init){
 
 	reg_to_init->i2c.slave_addr_1 = DEFAULT_I2C_SLAVE_ID_1;
 	reg_to_init->i2c.slave_addr_2 = DEFAULT_I2C_SLAVE_ID_2;
+	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
 	return EOK;
 }

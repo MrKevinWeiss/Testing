@@ -43,13 +43,14 @@
 #include "app_typedef.h"
 #include "app_common.h"
 #include "app.h"
+#include "app_debug.h"
 #include "serial_com.h"
 
 /* Defines -------------------------------------------------------------------*/
 #define COM_BUF_SIZE	((uint16_t)1024)//((uint16_t)256)
 
 #define RX_END_CHAR		'\n'
-#define TX_END_STR		"\r\n"
+#define TX_END_STR		"\n"
 #define READ_BYTE_CMD	"rb "
 #define READ_REG_CMD	"rr "
 #define WRITE_REG_CMD	"wr "
@@ -91,7 +92,7 @@ static UART_HandleTypeDef* huart_inst = NULL;
  */
 error_t app_com_init(UART_HandleTypeDef *huart) {
 	char str[COM_BUF_SIZE] = {0};
-	sprintf(str, "Build Date: %s %s\r\n", __DATE__, __TIME__);
+	sprintf(str, "Build Date: %s %s\n", __DATE__, __TIME__);
 	error_t err = _tx_str(huart, str);
 	if (err == EOK) {
 		huart_inst = huart;
@@ -458,4 +459,11 @@ uint32_t _fast_atou(char **str, char terminator) {
  */
 static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart) {
 	return (COM_BUF_SIZE - huart->hdmarx->Instance->CNDTR);
+}
+
+void debug_print(char *str){
+#ifdef DEBUG_PRINT
+	HAL_UART_AbortTransmit(huart_inst);
+	HAL_UART_Transmit_DMA(huart_inst, (uint8_t*) str, strlen(str));
+#endif
 }
