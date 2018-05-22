@@ -135,8 +135,6 @@ void i2c_err(I2C_HandleTypeDef* hi2c) {
 	uint32_t sr1itflags = READ_REG(hi2c->Instance->SR1);
 	uint32_t itsources = READ_REG(hi2c->Instance->CR2);
 
-	DEBUG_MSG("Entered Error\n");
-
 	if (((sr1itflags & I2C_FLAG_AF) != RESET)
 			&& ((itsources & I2C_IT_ERR) != RESET)) {
 		_sub_index(&reg_index);

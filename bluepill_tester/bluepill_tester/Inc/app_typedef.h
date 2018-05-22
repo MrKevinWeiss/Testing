@@ -21,6 +21,7 @@ typedef struct i2c_mode_t_TAG
 	uint8_t addr_10_bit		: 1;
 	uint8_t general_call	: 1;
 	uint8_t no_clk_stretch	: 1;
+	uint8_t disable			: 1;
 }i2c_mode_t;
 
 //Author: Kevin Weiss
