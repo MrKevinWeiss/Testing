@@ -17,8 +17,6 @@
 #include "app_i2c.h"
 #include "app.h"
 
-#define FW_REV	(10000U)
-
 static map_t reg = {0};
 
 error_t _init_reg(map_t *reg_to_init){
@@ -32,8 +30,11 @@ error_t _init_reg(map_t *reg_to_init){
 	reg_to_init->sys.build_time.month = BUILD_MONTH;
 	reg_to_init->sys.build_time.year = BUILD_YEAR;
 
+	reg_to_init->sys.device_num = DEFAULT_SYS_DEVICE_NUM;
+
 	reg_to_init->i2c.slave_addr_1 = DEFAULT_I2C_SLAVE_ID_1;
 	reg_to_init->i2c.slave_addr_2 = DEFAULT_I2C_SLAVE_ID_2;
+
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
 	return EOK;
