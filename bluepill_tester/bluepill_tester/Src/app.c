@@ -19,7 +19,13 @@
 
 static map_t reg = {0};
 
+//TODO: Add mode
+//TODO: Add reset to defaults
+
 error_t _init_reg(map_t *reg_to_init){
+	DIS_INT;
+	memset(reg_to_init->data8, 0, sizeof(*reg_to_init));
+
 	HAL_GetUID((uint32_t*)&reg_to_init->sys.sn[0]);
 	reg.sys.fw_rev = FW_REV;
 
@@ -37,6 +43,10 @@ error_t _init_reg(map_t *reg_to_init){
 
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
+	for (int i = 0; i < sizeof(*reg_to_init) - MAP_T_RES_OFFSET; i++){
+		reg_to_init->res[i] = (uint8_t)i;
+	}
+	EN_INT;
 	return EOK;
 }
 
