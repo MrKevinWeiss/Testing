@@ -199,16 +199,23 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 		if (set_index == true) {
 			set_index = false;
 			start_reg_index = hi2c->Instance->DR;
+			reg_index = start_reg_index;
 		} else {
 			uint8_t data = hi2c->Instance->DR;
 			write_user_reg(reg_index, data);
 			_add_index(&reg_index);
 		}
-
 	} else if (((sr1itflags & I2C_FLAG_BTF) != RESET)
 			&& ((itsources & I2C_IT_EVT) != RESET)) {
-		_add_index(&reg_index);
-		_add_index(&reg_index);
+		if (set_index == true) {
+			set_index = false;
+			start_reg_index = hi2c->Instance->DR;
+			reg_index = start_reg_index;
+		} else {
+			uint8_t data = hi2c->Instance->DR;
+			write_user_reg(reg_index, data);
+			_add_index(&reg_index);
+		}
 	}
 }
 

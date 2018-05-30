@@ -21,6 +21,7 @@ static map_t reg = {0};
 
 //TODO: Add mode
 //TODO: Add reset to defaults
+//TODO: Add i2c last amount of writes and reads
 
 error_t _init_reg(map_t *reg_to_init){
 	DIS_INT;
