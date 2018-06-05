@@ -22,6 +22,9 @@ static map_t reg = {0};
 //TODO: Add mode
 //TODO: Add reset to defaults
 //TODO: Add i2c last amount of writes and reads
+//TODO: Support 16/8 bit address confirm
+//TODO: Add i2c bus reset or some kind of way to handle master collision detect
+//TODO: Write with repeated start vs no repeated start
 
 error_t _init_reg(map_t *reg_to_init){
 	DIS_INT;
