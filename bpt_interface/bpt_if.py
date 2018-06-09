@@ -2,11 +2,11 @@ import serial
 
 PORT = '/dev/ttyACM0'
 BAUD = 115200
-dev = serial.Serial(PORT, BAUD, timeout=1)
+dev = serial.serial_for_url(PORT, BAUD, timeout=1)
 
 
 def open():
-    dev = serial.Serial(PORT, BAUD, timeout=1)
+    dev = serial.serial_for_url(PORT, BAUD, timeout=1)
     if(dev.isOpen() is False):
         dev.open()
 
