@@ -31,7 +31,7 @@ def getTypedef(data):
     str = ""
     if (u'description' in data):
         str += "/* %s */\n" % (data["description"])
-    str += "typedef struct %s_TAG {\n" % (data["name"])
+    str += "typedef union %s_TAG {\n" % (data["name"])
     str += "\tstruct {\n"
     total_byte = 0
     for val in data["elements"]:

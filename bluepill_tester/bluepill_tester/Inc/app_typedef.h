@@ -11,7 +11,7 @@
 
 #pragma pack(1)
 /* Time and date */
-typedef struct timestamp_t_TAG {
+typedef union timestamp_t_TAG {
 	struct {
 		/* The seconds in decimal */
 		uint8_t second;
@@ -34,7 +34,7 @@ typedef struct timestamp_t_TAG {
 } timestamp_t;
 
 /* System settings for the bpt */
-typedef struct sys_t_TAG {
+typedef union sys_t_TAG {
 	struct {
 		/* Unique ID of the device */
 		uint8_t sn[12];
@@ -64,7 +64,7 @@ typedef struct i2c_mode_t_TAG {
 	uint8_t disable : 1;
 } i2c_mode_t;
 /* System settings for the bpt */
-typedef struct i2c_t_TAG {
+typedef union i2c_t_TAG {
 	struct {
 		/* Specific modes for I2C */
 		i2c_mode_t mode;
@@ -88,7 +88,7 @@ typedef struct i2c_t_TAG {
 	uint8_t data8[16];
 } i2c_t;
 
-typedef struct spi_t_TAG {
+typedef union spi_t_TAG {
 	struct {
 		uint8_t mode;
 		uint32_t error_code;
@@ -99,7 +99,7 @@ typedef struct spi_t_TAG {
 } spi_t;
 
 /*  */
-typedef struct uart_t_TAG {
+typedef union uart_t_TAG {
 	struct {
 		/*  */
 		uint8_t mode;
@@ -118,7 +118,7 @@ typedef struct uart_t_TAG {
 } uart_t;
 
 /*  */
-typedef struct adc_t_TAG {
+typedef union adc_t_TAG {
 	struct {
 		/*  */
 		uint8_t mode;
@@ -135,7 +135,7 @@ typedef struct adc_t_TAG {
 } adc_t;
 
 /*  */
-typedef struct pwm_t_TAG {
+typedef union pwm_t_TAG {
 	struct {
 		/*  */
 		uint8_t mode;
@@ -152,7 +152,7 @@ typedef struct pwm_t_TAG {
 } pwm_t;
 
 /*  */
-typedef struct tmr_t_TAG {
+typedef union tmr_t_TAG {
 	struct {
 		/*  */
 		uint8_t mode;
@@ -173,7 +173,7 @@ typedef struct tmr_t_TAG {
 } tmr_t;
 
 /* The memory map */
-typedef struct map_t_TAG {
+typedef union map_t_TAG {
 	struct {
 		/* system configuration (protected) */
 		sys_t sys;
