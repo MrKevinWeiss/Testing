@@ -5,17 +5,20 @@
  *      Author: kevinweiss
  */
 
+#include <stdbool.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "stm32f1xx_hal.h"
 
-
+#include "app_errno.h"
 #include "app_typedef.h"
 #include "app_common.h"
 #include "build_defs.h"
 #include "app_defaults.h"
 #include "app_i2c.h"
 #include "app.h"
+
 
 static map_t reg = {0};
 
@@ -47,7 +50,7 @@ error_t _init_reg(map_t *reg_to_init){
 
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
-	for (int i = 0; i < sizeof(*reg_to_init) - MAP_T_RES_OFFSET; i++){
+	for (int i = 0; i < sizeof(reg_to_init->res); i++){
 		reg_to_init->res[i] = (uint8_t)i;
 	}
 	EN_INT;
@@ -88,7 +91,7 @@ error_t read_reg(uint32_t index, uint8_t *data){
 }
 
 error_t write_cfg_reg(uint32_t index, uint8_t data){
-	if (index < SYS_T_SIZE){
+	if (index < sizeof(sys_t)){
 		return EACCES;
 	}
 	else if (index >= sizeof(reg)){
@@ -102,7 +105,7 @@ error_t write_cfg_reg(uint32_t index, uint8_t data){
 }
 
 error_t write_user_reg(uint32_t index, uint8_t data){
-	if (index < MAP_T_RES_OFFSET){
+	if (index < offsetof(map_t, res)){
 		return EACCES;
 	}
 	else if (index >= sizeof(reg)){

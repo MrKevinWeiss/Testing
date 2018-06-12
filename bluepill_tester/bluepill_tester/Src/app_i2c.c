@@ -33,12 +33,17 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <errno.h>
 
 #include "stm32f1xx_hal.h"
 
+#include "app_errno.h"
+#include "app_common.h"
+#include "app_errno.h"
 #include "app_typedef.h"
 #include "app.h"
-#include "app_common.h"
 #include "app_debug.h"
 #include "app_i2c.h"
 

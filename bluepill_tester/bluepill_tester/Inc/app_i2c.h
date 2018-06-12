@@ -8,6 +8,7 @@
 #ifndef APP_I2C_H_
 #define APP_I2C_H_
 
+#include <errno.h>
 
 error_t app_i2c_execute(i2c_t *i2c);
 

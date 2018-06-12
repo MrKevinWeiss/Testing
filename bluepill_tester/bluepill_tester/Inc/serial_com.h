@@ -36,6 +36,8 @@
 #ifndef SERIAL_COM_H_
 #define SERIAL_COM_H_
 
+#include <errno.h>
+
 /* Defines -------------------------------------------------------------------*/
 
 

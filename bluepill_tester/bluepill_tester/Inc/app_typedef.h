@@ -1,247 +1,201 @@
 /*
- * app_typedef.h
- *
- *  Created on: May 17, 2018
- *      Author: kevinweiss
- */
+ * Filename: bpt_mem_map.h
+ * Author: Kevin Weiss
+ * Revision: 1.00.00
+*/
 
-#ifndef APP_TYPEDEF_H_
-#define APP_TYPEDEF_H_
+#ifndef BPT_MEM_MAP_H_
+#define BPT_MEM_MAP_H_
 
 #include <stdint.h>
-#include <stdbool.h>
-#include <errno.h>
 
-#include "app_errno.h"
-
-
-typedef struct i2c_mode_t_TAG
-{
-	#pragma pack(1)
-	uint8_t addr_10_bit		: 1;
-	uint8_t general_call	: 1;
-	uint8_t no_clk_stretch	: 1;
-	uint8_t disable			: 1;
-}i2c_mode_t;
-
-//Author: Kevin Weiss
-//Revision: 1.00.00d
-// Max structure size definitions
-#define TIMESTAMP_T_SIZE 8
-#define SYS_T_SIZE 32
-#define I2C_T_SIZE 16
-#define SPI_T_SIZE 16
-#define UART_T_SIZE 16
-#define ADC_T_SIZE 16
-#define PWM_T_SIZE 16
-#define TMR_T_SIZE 16
-#define MAP_T_SIZE 256
-
-
-// Array size definitions
-#define SN_AMOUNT 12
-#define ADC_AMOUNT 2
-
-
-// Array offset definitions
-#define TIMESTAMP_T_SECOND_OFFSET 0
-#define TIMESTAMP_T_MINUTE_OFFSET 1
-#define TIMESTAMP_T_HOUR_OFFSET 2
-#define TIMESTAMP_T_DAY_OF_MONTH_OFFSET 3
-#define TIMESTAMP_T_DAY_OF_WEEK_OFFSET 4
-#define TIMESTAMP_T_MONTH_OFFSET 5
-#define TIMESTAMP_T_YEAR_OFFSET 6
-#define TIMESTAMP_T_RES_OFFSET 7
-
-#define SYS_T_SN_OFFSET 0
-#define SYS_T_FW_REV_OFFSET 12
-#define SYS_T_BUILD_TIME_OFFSET 16
-#define SYS_T_DEVICE_NUM_OFFSET 24
-#define SYS_T_RES_OFFSET 28
-
-#define I2C_T_MODE_OFFSET 0
-#define I2C_T_ERROR_CODE_OFFSET 1
-#define I2C_T_CLK_STRETCH_DELAY_OFFSET 3
-#define I2C_T_INJECT_FAILURE_MODE_OFFSET 5
-#define I2C_T_SLAVE_ADDR_1_OFFSET 6
-#define I2C_T_SLAVE_ADDR_2_OFFSET 8
-#define I2C_T_RES_OFFSET 10
-
-#define SPI_T_MODE_OFFSET 0
-#define SPI_T_ERROR_CODE_OFFSET 1
-#define SPI_T_RES_OFFSET 5
-
-#define UART_T_MODE_OFFSET 0
-#define UART_T_ERROR_CODE_OFFSET 1
-#define UART_T_BAUD_OFFSET 3
-#define UART_T_REG_OUTPUT_OFFSET 7
-#define UART_T_SIZE_OFFSET 8
-#define UART_T_RES_OFFSET 9
-
-#define ADC_T_MODE_OFFSET 0
-#define ADC_T_ERROR_CODE_OFFSET 1
-#define ADC_T_SAMPLE_RATE_OFFSET 3
-#define ADC_T_VALUE_OFFSET 4
-#define ADC_T_RES_OFFSET 8
-
-#define PWM_T_MODE_OFFSET 0
-#define PWM_T_ERROR_CODE_OFFSET 1
-#define PWM_T_DUTY_OFFSET 3
-#define PWM_T_FREQ_OFFSET 4
-#define PWM_T_RES_OFFSET 8
-
-#define TMR_T_MODE_OFFSET 0
-#define TMR_T_ERROR_CODE_OFFSET 1
-#define TMR_T_DUTY_OFFSET 3
-#define TMR_T_FREQ_OFFSET 4
-#define TMR_T_HI_US_OFFSET 8
-#define TMR_T_LO_US_OFFSET 12
-
-#define MAP_T_SYS_OFFSET 0
-#define MAP_T_I2C_OFFSET 32
-#define MAP_T_SPI_OFFSET 48
-#define MAP_T_UART_OFFSET 64
-#define MAP_T_RTC_OFFSET 80
-#define MAP_T_ADC_OFFSET 88
-#define MAP_T_PWM_OFFSET 120
-#define MAP_T_TMR_OFFSET 136
-#define MAP_T_RES_OFFSET 152
-
-
-
-typedef union timestamp_t_TAG
-{
-	uint8_t data8[TIMESTAMP_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+#pragma pack(1)
+/* Time and date */
+typedef struct timestamp_t_TAG {
+	struct {
+		/* The seconds in decimal */
 		uint8_t second;
+		/* The minutes in decimal */
 		uint8_t minute;
+		/* The hours in decimal */
 		uint8_t hour;
+		/* The months in decimal */
 		uint8_t day_of_month;
+		/* The week in decimal */
 		uint8_t day_of_week;
+		/* The month in decimal */
 		uint8_t month;
+		/* The last two digits of the year in decimal (20xx) */
 		uint8_t year;
+		/* reserve bytes */
 		uint8_t res[1];
 	};
-}timestamp_t;
+	uint8_t data8[8];
+} timestamp_t;
 
-typedef union sys_t_TAG
-{
-	uint8_t data8[SYS_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
-		uint8_t sn[SN_AMOUNT];
+/* System settings for the bpt */
+typedef struct sys_t_TAG {
+	struct {
+		/* Unique ID of the device */
+		uint8_t sn[12];
+		/* Firmware revision */
 		uint32_t fw_rev;
+		/* time of build */
 		timestamp_t build_time;
+		/* A constant number that should always be the same */
 		uint32_t device_num;
+		/* reserve bytes */
+		uint8_t res[15];
+	};
+	uint8_t data8[32];
+} sys_t;
+
+/* Specific modes for I2C */
+typedef struct i2c_mode_t_TAG {
+	/* Specific modes for I2C */
+	uint8_t addr_10_bit : 1;
+	/* Specific modes for I2C */
+	uint8_t general_call : 1;
+	/* Specific modes for I2C */
+	uint8_t no_clk_stretch : 1;
+	/* Specific modes for I2C */
+	uint8_t reg_16_bit : 1;
+	/* Specific modes for I2C */
+	uint8_t disable : 1;
+} i2c_mode_t;
+/* System settings for the bpt */
+typedef struct i2c_t_TAG {
+	struct {
+		/* Specific modes for I2C */
+		i2c_mode_t mode;
+		/* Error code for I2C */
+		uint16_t error_code;
+		/* delay in us for clock stretch */
+		uint16_t clk_stretch_delay;
+		/* Injects failures for the bus */
+		uint8_t inject_failure_mode;
+		/* Primary slave address */
+		uint16_t slave_addr_1;
+		/* Secondary slave address */
+		uint16_t slave_addr_2;
+		/* last read frame byte count */
+		uint8_t r_count;
+		/* last write frame byte count */
+		uint8_t w_count;
+		/* reserve bytes */
 		uint8_t res[4];
 	};
-}sys_t;
+	uint8_t data8[16];
+} i2c_t;
 
-typedef union i2c_t_TAG
-{
-	uint8_t data8[I2C_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
-		i2c_mode_t mode;
-		uint16_t error_code;
-		uint16_t clk_stretch_delay;
-		uint8_t inject_failure_mode;
-		uint16_t slave_addr_1;
-		uint16_t slave_addr_2;
-		uint8_t res[6];
-	};
-}i2c_t;
-
-typedef union spi_t_TAG
-{
-	uint8_t data8[SPI_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+typedef struct spi_t_TAG {
+	struct {
 		uint8_t mode;
 		uint32_t error_code;
+		/* reserve bytes */
 		uint8_t res[11];
 	};
-}spi_t;
+	uint8_t data8[16];
+} spi_t;
 
-typedef union uart_t_TAG
-{
-	uint8_t data8[UART_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+/*  */
+typedef struct uart_t_TAG {
+	struct {
+		/*  */
 		uint8_t mode;
+		/*  */
 		uint16_t error_code;
+		/*  */
 		uint32_t baud;
+		/*  */
 		uint8_t reg_output;
+		/*  */
 		uint8_t size;
+		/* reserve bytes */
 		uint8_t res[7];
 	};
-}uart_t;
+	uint8_t data8[16];
+} uart_t;
 
-typedef union adc_t_TAG
-{
-	uint8_t data8[ADC_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+/*  */
+typedef struct adc_t_TAG {
+	struct {
+		/*  */
 		uint8_t mode;
+		/*  */
 		uint16_t error_code;
+		/*  */
 		uint8_t sample_rate;
+		/*  */
 		uint32_t value;
+		/* reserve bytes */
 		uint8_t res[8];
 	};
-}adc_t;
+	uint8_t data8[16];
+} adc_t;
 
-typedef union pwm_t_TAG
-{
-	uint8_t data8[PWM_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+/*  */
+typedef struct pwm_t_TAG {
+	struct {
+		/*  */
 		uint8_t mode;
+		/*  */
 		uint16_t error_code;
+		/*  */
 		uint8_t duty;
+		/*  */
 		uint32_t freq;
+		/* reserve bytes */
 		uint8_t res[8];
 	};
-}pwm_t;
+	uint8_t data8[16];
+} pwm_t;
 
-typedef union tmr_t_TAG
-{
-	uint8_t data8[TMR_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+/*  */
+typedef struct tmr_t_TAG {
+	struct {
+		/*  */
 		uint8_t mode;
+		/*  */
 		uint16_t error_code;
+		/*  */
 		uint8_t duty;
+		/*  */
 		uint32_t freq;
+		/*  */
 		uint32_t hi_us;
+		/*  */
 		uint32_t lo_us;
+		/* reserve bytes */
+		uint8_t res[0];
 	};
-}tmr_t;
+	uint8_t data8[16];
+} tmr_t;
 
-typedef union map_t_TAG
-{
-	uint8_t data8[MAP_T_SIZE];
-	struct
-	{
-		#pragma pack(1)
+/* The memory map */
+typedef struct map_t_TAG {
+	struct {
+		/* system configuration (protected) */
 		sys_t sys;
+		/* I2C configuration */
 		i2c_t i2c;
+		/*  */
 		spi_t spi;
+		/*  */
 		uart_t uart;
+		/*  */
 		timestamp_t rtc;
-		adc_t adc[ADC_AMOUNT];
+		/*  */
+		adc_t adc;
+		/*  */
 		pwm_t pwm;
+		/*  */
 		tmr_t tmr;
-		uint8_t res[104];
+		/* reserve bytes */
+		uint8_t res[120];
 	};
-}map_t;
+	uint8_t data8[256];
+} map_t;
 
-#endif /* APP_TYPEDEF_H_ */
+#pragma pack()
+#endif
