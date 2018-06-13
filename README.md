@@ -35,7 +35,7 @@ This is intended to provide tools for embedded testing.
 (pin12/PA2/TX2 of BPT <-> RX of USB to UART)
 3. Connect specific pins required for testing the DUT to the BPT  
 (pin42/PB6/SCL1 of BPT <-> SCL0 of DUT)  
-(pin43/PB7/SCK1 of BPT <-> SCK0 of DUT)
+(pin43/PB7/SDA1 of BPT <-> SDA0 of DUT)
 4. Flash DUT with test firmware
 5. Run python script in the test folder
 
