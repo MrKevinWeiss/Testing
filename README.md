@@ -43,3 +43,11 @@ This is intended to provide tools for embedded testing.
 <a href="resources/bptpinout.jpg">
     <img src="resources/bptpinout.jpg" alt="drawing" width="500px"/>
 </a>
+
+# BPT Misc Info
+- I2C slave address is 85 or 0x55
+- Total registers are 256
+- Upper registers can be read or written (152+)
+- Lower registers are read only by user but can be altered with UART2 connection
+- sys register is locked
+- For changing configuration the registers can be set then the ex command must be used to execute changes
