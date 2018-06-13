@@ -40,6 +40,6 @@ This is intended to provide tools for embedded testing.
 5. Run python script in the test folder
 
 # BPT Pinout
-<a href="default.asp">
+<a href="resources/bptpinout.jpg">
     <img src="resources/bptpinout.jpg" alt="drawing" width="500px"/>
 </a>
