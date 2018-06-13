@@ -45,7 +45,7 @@ typedef union sys_t_TAG {
 		/* A constant number that should always be the same */
 		uint32_t device_num;
 		/* reserve bytes */
-		uint8_t res[15];
+		uint8_t res[4];
 	};
 	uint8_t data8[32];
 } sys_t;
@@ -186,13 +186,13 @@ typedef union map_t_TAG {
 		/*  */
 		timestamp_t rtc;
 		/*  */
-		adc_t adc;
+		adc_t adc[2];
 		/*  */
 		pwm_t pwm;
 		/*  */
 		tmr_t tmr;
 		/* reserve bytes */
-		uint8_t res[120];
+		uint8_t res[104];
 	};
 	uint8_t data8[256];
 } map_t;
