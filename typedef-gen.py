@@ -1,9 +1,139 @@
 import json
 import argparse
-
+import pprint
+import copy
 
 types = {'uint8_t': 1, 'int8_t': 1, 'uint16_t': 2, 'int16_t': 2,
          'uint32_t': 4, 'int32_t': 4, 'uint64_t': 8, 'int64_t': 8}
+
+primary_types = {'uint8_t': 1, 'int8_t': 1, 'uint16_t': 2, 'int16_t': 2,
+                 'uint32_t': 4, 'int32_t': 4, 'uint64_t': 8, 'int64_t': 8}
+
+
+def get_mem_map(name, map, elements):
+
+
+    #if map[-1]["name"] != "":
+        #map[-1]["name"] += "."
+    #map[-1]["name"] += elements["name"]
+
+    for element in elements:
+
+        if ("elements" in element):
+            name += element["name"] + "."
+            get_mem_map(name, map, element["elements"])
+            name = name.replace(element["name"] + ".", "")
+        elif ("array" in element):
+            name += element["name"]
+            for i, array_val in enumerate(element["array"]):
+                name += "[%d]." % i
+                get_mem_map(name, map, array_val["elements"])
+                name = name.replace("[%d]." % i, "")
+            name = name.replace(element["name"], "")
+        elif ("bitfield" in element):
+            map.append({"name": "", "size": -1, "offset": -1, "description": ""})
+            map[-1]["size"] = element["size"]
+            map[-1]["offset"] = element["offset"]
+            map[-1]["name"] += name + element["name"]
+            if ("description" in element):
+                map[-1]["description"] = element["description"]
+        elif (element["type"] in primary_types):
+            map.append({"name": "", "size": -1, "offset": -1, "description": ""})
+            map[-1]["size"] = element["size"]
+            map[-1]["offset"] = element["offset"]
+            map[-1]["name"] += name + element["name"]
+            if ("description" in element):
+                map[-1]["description"] = element["description"]
+            if ("array_size" in element):
+                map[-1]["name"] += "[%d]" % element["array_size"]
+        else:
+            raise ValueError("ERROR1: type not primary or contains elements")
+
+
+
+
+def update_offsets(elements, offset):
+    for element in elements:
+        element.update({"offset": offset})
+        if ("elements" in element):
+            offset = update_offsets(element["elements"], offset)
+        elif ("array" in element):
+            for array_val in element["array"]:
+                offset = update_offsets(array_val["elements"], offset)
+        elif ("bitfield" in element):
+            if (element["bit_type"] in primary_types):
+                offset += primary_types[element["bit_type"]]
+            else:
+                raise ValueError("ERROR2: type not primary or contains elements")
+        elif (element["type"] in primary_types):
+            if ("array_size" in element):
+                offset += primary_types[element["type"]]*element["array_size"]
+            else:
+                offset += primary_types[element["type"]]
+        else:
+            raise ValueError("ERROR1: type not primary or contains elements")
+    return offset
+
+
+def get_offsets(typedefs):
+    for typedef in typedefs:
+        offset = 0
+        offset = update_offsets(typedef["elements"], offset)
+
+
+def get_sizes(typedefs):
+    type_sizes = dict()
+    type_sizes.update(primary_types)
+    for typedef in typedefs:
+        total_byte = 0
+        for element in typedef["elements"]:
+            if ('bitfield' in element):
+                total_byte += primary_types[element["bit_type"]]
+                element.update({"size": primary_types[element["bit_type"]]})
+            elif ('array_size' in element):
+                total_byte += type_sizes[element["type"]] * element["array_size"]
+                element.update({"size": type_sizes[element["type"]] * element["array_size"]})
+            else:
+                total_byte += type_sizes[element["type"]]
+                element.update({"size": type_sizes[element["type"]]})
+
+        if "total_size" in typedef:
+            if (typedef["total_size"] < total_byte):
+                raise ValueError("%d out of %d bytes in %s" %
+                                 (total_byte, typedef["total_size"], typedef["name"]))
+            type_sizes.update({typedef["name"]: typedef["total_size"]})
+            typedef.update({"size": typedef["total_size"]})
+            if (typedef["total_size"] is not total_byte):
+                typedef["elements"].append({"name": "res", "type": "uint8_t", "array_size": typedef["total_size"] - total_byte, "size": typedef["total_size"] - total_byte, "description": "Reserved bytes"})
+        else:
+            type_sizes.update({typedef["name"]: total_byte})
+            typedef.update({"size": total_byte})
+
+
+def get_type_elements(typename, typedefs):
+    for typedef in typedefs:
+        if typename == typedef["name"]:
+            elements = copy.deepcopy(typedef["elements"])
+            return {"elements": elements, "size": typedef["size"]}
+    raise ValueError("Cannot find %s" % (typename))
+
+
+def expand_typedefs(typedefs):
+    total_typedefs = list()
+    for typedef in typedefs:
+        for element in typedef["elements"]:
+            if (element["type"] not in primary_types):
+                if ("bitfield" not in element):
+                    if ("array_size" in element):
+                        element_array = list()
+                        single_copy = (get_type_elements(element["type"], total_typedefs))
+                        for i in range(0, element["array_size"]):
+                            element_array.append(copy.deepcopy(single_copy))
+                        element.update({"array": element_array})
+                    else:
+                        element.update(get_type_elements(element["type"], total_typedefs))
+        total_typedefs.append(typedef)
+    return total_typedefs
 
 
 def getBitfield(data):
@@ -45,16 +175,17 @@ def getTypedef(data):
         if ('array_size' in val):
             str += "\t\t%s %s[%d];\n" % (val["type"], val["name"],
                                          val["array_size"])
+            total_byte += types[val["type"]] * val["array_size"]
         else:
             str += "\t\t%s %s;\n" % (val["type"], val["name"])
-        total_byte += types[val["type"]]
-
+            total_byte += types[val["type"]]
     if "total_size" in data:
         if (data["total_size"] < total_byte):
             raise ValueError("%d out of %d bytes in %s" %
                              (total_byte, data["total_size"], data["name"]))
-        str += "\t\t/* reserve bytes */\n"
-        str += "\t\tuint8_t res[%d];\n" % (data["total_size"] - total_byte)
+        if (data["total_size"] is not total_byte):
+            str += "\t\t/* reserve bytes */\n"
+            str += "\t\tuint8_t res[%d];\n" % (data["total_size"] - total_byte)
         types.update({data["name"]: data["total_size"]})
     else:
         types.update({data["name"]: total_byte})
@@ -69,7 +200,7 @@ def getTypedef(data):
 def getFullHeader(data):
     str = ""
     structs = list()
-    for val in data["typedef"]["structs"]:
+    for val in data["typedefs"]:
         structs.extend(getTypedef(val))
 
     str += "/*\n"
@@ -103,7 +234,25 @@ with open(f_name) as f:
     data = json.load(f)
 
 str = getFullHeader(data)
-print(str)
+
+get_sizes(data["typedefs"])
+x = expand_typedefs(data["typedefs"])
+get_offsets(x)
+
+mem_map = list()
+get_mem_map("", mem_map, x[8]["elements"])
+
 f = open((data["metadata"]["name"]+".h"), 'w')
 f.write(str)
+f.close()
+f = open((data["metadata"]["name"]+".json"), 'w')
+f.write(json.dumps(x))
+f.close()
+
+f = open((data["metadata"]["name"]+".csv"), 'w')
+str = "Name,Size,Offset,Description\n"
+for line in mem_map:
+    str += "%s,%d,%d,%s\n" % (line["name"], line["size"], line["offset"], line["description"])
+f.write(str)
+
 f.close()
