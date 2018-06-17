@@ -143,6 +143,7 @@ int main(void) {
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
 	app_i2c_init(&hi2c1);
+	app_uart_init(&huart1);
 	app_com_init(&huart2);
 	execute_reg_change();
 	/* USER CODE END 2 */

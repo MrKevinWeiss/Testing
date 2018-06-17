@@ -50,6 +50,8 @@ error_t _init_reg(map_t *reg_to_init){
 
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
+	reg_to_init->uart.baud = DEFAULT_UART_BAUDRATE;
+
 	for (int i = 0; i < sizeof(reg_to_init->res); i++){
 		reg_to_init->res[i] = (uint8_t)i;
 	}
@@ -68,6 +70,10 @@ error_t execute_reg_change(){
 
 	if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))){
 		app_i2c_execute(&reg.i2c);
+	}
+
+	if (memcmp(&prev_reg.uart, &reg.uart, sizeof(reg.uart))){
+		app_uart_execute(&reg.uart);
 	}
 
 	memcpy(&prev_reg, &reg, sizeof(reg));
