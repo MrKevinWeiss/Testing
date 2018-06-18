@@ -93,7 +93,7 @@ static UART_HandleTypeDef* huart_inst = NULL;
  */
 error_t app_com_init(UART_HandleTypeDef *huart) {
 	char str[COM_BUF_SIZE] = {0};
-	sprintf(str, "Build Date: %s %s\n", __DATE__, __TIME__);
+	sprintf(str, "0, Initialized, Build Date: %s %s\n", __DATE__, __TIME__);
 	error_t err = _tx_str(huart, str);
 	if (err == EOK) {
 		huart_inst = huart;
