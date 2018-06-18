@@ -1,119 +1,86 @@
-import serial
-
-PORT = '/dev/ttyACM0'
-BAUD = 115200
-dev = serial.serial_for_url(PORT, BAUD, timeout=1)
+import base_if
+import serial.tools.list_ports
+import logging
 
 
-def open():
-    dev = serial.serial_for_url(PORT, BAUD, timeout=1)
-    if(dev.isOpen() is False):
-        dev.open()
 
+class BptIf(base_if.BaseIf):
+    __COMMAND = 'Command: '
+    __SUCCESS = 'Success: '
+    __ERROR = 'Error: '
+    __TIMEOUT = 'Timeout: '
+    __RESULT_SUCCESS = 'Success'
+    __RESULT_ERROR = 'Error'
+    __RESULT_TIMEOUT = 'Timeout'
 
-def close():
-    dev.close()
+    def __init__(self, port=None, baud=115200):
 
-
-def read_bits(index, size):
-    if(dev.isOpen() is False):
-        dev.open()
-    bits = (2 ^ size) - 1
-    rx_data = read_byte(index/8, 1)
-    if (not isinstance(rx_data, long)):
-        return rx_data
-    rx_data = (rx_data >> (index & 0x7)) & bits
-    print('bits: 0x%X' % (rx_data))
-    return rx_data
-
-
-def write_bits(index, size, data):
-    if(dev.isOpen() is False):
-        dev.open()
-    bits = (2 ** (size)) - 1
-    rx_data = read_byte(index/8, 1)
-    if (not isinstance(rx_data, long)):
-        return rx_data
-    rx_data = rx_data & (0b11111111 ^ (bits << (index & 0x7)))
-    rx_data = rx_data | ((data & bits) << (index & 0x7))
-    rx_data = write_bytes(index/8, 1, rx_data)
-    return rx_data
-
-
-def read_byte(index, size):
-    if(dev.isOpen() is False):
-        dev.open()
-    cmd = 'rr %d %d\n' % (index, size)
-    print(cmd)
-    dev.write(cmd)
-    raw_response = dev.readline()
-    response = raw_response.split(',')
-    print([x for x in raw_response.split(',') if x])
-    if (len(response) is 0):
-        return "no response"
-    if (response[0] is not "0"):
-        return "error code: " + response[0]
-    if (len(response) is 1):
-        return "unexpected error"
-
-    if (size < 8):
-        data = long(response[1], 0)
-    else:
-        data = bytearray.fromhex(response[1][2:len(response[1]) - 1])
-    print("data: " + response[1])
-    return data
-
-
-def write_bytes(index, size, data):
-    if(dev.isOpen() is False):
-        dev.open()
-    cmd = 'wr %d' % (index)
-    if (isinstance(data, list)):
-        for i in range(size):
-            if (size - i < len(data)):
-                cmd += ' %d' % (data[size - i])
-            else:
-                cmd += ' 0'
-        cmd += '\n'
-    else:
-        for i in range(size):
-            cmd += ' %d' % ((data >> ((i) * 8)) & 0xFF)
-        cmd += '\n'
-
-    print(cmd)
-    dev.write(cmd)
-    raw_response = dev.readline()
-    response = raw_response.split(',')
-    print([x for x in raw_response.split(',') if x])
-    return "error code: " + response[0]
-
-
-class reg:
-    def __init__(self, name, index, bits):
-        self.name = name
-        self.index = index
-        self.bits = bits
-
-    def read_cmd(self):
-        if ((self.index & 0x7) is 0 and (self.bits & 0x7) is 0):
-            return read_byte(self.index/8, self.bits/8)
+        if (port is None):
+            self.autoconnect()
         else:
-            return read_bits(self.index, self.bits)
+            self.connect(port, baud)
 
-    def write_cmd(self, data):
-        if ((self.index & 0x7) is 0 and (self.bits & 0x7) is 0):
-            return write_bytes(self.index/8, self.bits/8, data)
-        else:
-            return write_bits(self.index, self.bits, data)
+    def autoconnect(self):
+        found_connection = False
+        comlist = serial.tools.list_ports.comports()
+        connected = []
+        logging.debug("Autoconnecting")
+        for element in comlist:
+            connected.append(element.device)
+        for port in connected:
+            logging.debug("Port: " + port)
+            self.connect(port)
+            ret = self.get_device_num().data
+            if (isinstance(ret, long)):
+                logging.debug("ID: %s" % ret)
+                if (ret == 0x42A5):
+                    logging.debug("Found connection")
+                    found_connection = True
+                    break
+            self.disconnect()
+        return found_connection
 
+    def get_sn(self):
+        return self.read_bytes(0, 12)
 
-sn = reg("sn", 0, 12*8)
-fw_rev = reg("fw_rev", 12*8, 4*8)
-build_time = reg("build_time", 16*8, 8*8)
-i2c_addr_1 = reg("i2c_addr_1", 32*8 + 6*8, 2*8)
-i2c_addr_2 = reg("i2c_addr_2", 32*8 + 8*8, 2*8)
-i2c_clk_stretch_delay = reg("i2c_clk_stretch_delay", 32*8 + 3*8, 2*8)
-i2c_gen_call = reg("i2c_gen_call", 32*8 + 1*1, 1)
-i2c_clk_stretch_dis = reg("i2c_clk_stretch_dis", 32*8 + 2*1, 1)
-i2c_10_bit_addr = reg("i2c_10_bit_addr", 32*8 + 0*1, 1)
-i2c_disable = reg("i2c_disable", 32*8 + 3*1, 1)
+    def get_fw_rev(self):
+        return self.read_bytes(12, 4)
+
+    def get_build_time(self):
+        cmd_info = self.read_bytes(16, 8)
+        return cmd_info
+
+    def get_device_num(self):
+        return self.read_bytes(24, 4)
+
+    def get_i2c_addr_1(self):
+        return self.read_bytes(32 + 6, 2)
+
+    def set_i2c_addr_1(self, data=0x55):
+        return self.write_bytes(32 + 6, data, 2)
+
+    def get_i2c_addr_2(self):
+        return self.read_bytes(32 + 8, 2)
+
+    def set_i2c_addr_2(self, data=0x7F):
+        return self.write_bytes(32 + 8, data, 2)
+
+    def get_i2c_10_bit_addr(self):
+        return self.read_bits(32, 1, 1)
+
+    def set_i2c_10_bit_addr(self, data=0):
+        return self.write_bits(32, 1, 1, data)
+
+    def get_command_list(self):
+        cmds = list()
+        cmds.append(self.get_sn)
+        cmds.append(self.get_fw_rev)
+        cmds.append(self.get_build_time)
+        cmds.append(self.get_device_num)
+        cmds.append(self.set_i2c_addr_1)
+        cmds.append(self.get_i2c_addr_1)
+        cmds.append(self.get_i2c_addr_2)
+        cmds.append(self.set_i2c_addr_2)
+        cmds.append(self.get_i2c_10_bit_addr)
+        cmds.append(self.set_i2c_10_bit_addr)
+        return cmds
