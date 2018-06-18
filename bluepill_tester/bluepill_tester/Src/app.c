@@ -17,13 +17,13 @@
 #include "build_defs.h"
 #include "app_defaults.h"
 #include "app_i2c.h"
+#include "app_uart.h"
 #include "app.h"
 
 
 static map_t reg = {0};
 
 //TODO: Add mode
-//TODO: Add reset to defaults
 //TODO: Add i2c last amount of writes and reads
 //TODO: Support 16/8 bit address confirm
 //TODO: Add i2c bus reset or some kind of way to handle master collision detect
