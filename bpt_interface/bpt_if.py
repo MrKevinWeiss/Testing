@@ -3,15 +3,7 @@ import serial.tools.list_ports
 import logging
 
 
-
 class BptIf(base_if.BaseIf):
-    __COMMAND = 'Command: '
-    __SUCCESS = 'Success: '
-    __ERROR = 'Error: '
-    __TIMEOUT = 'Timeout: '
-    __RESULT_SUCCESS = 'Success'
-    __RESULT_ERROR = 'Error'
-    __RESULT_TIMEOUT = 'Timeout'
 
     def __init__(self, port=None, baud=115200):
 
@@ -31,7 +23,7 @@ class BptIf(base_if.BaseIf):
             logging.debug("Port: " + port)
             self.connect(port)
             ret = self.get_device_num().data
-            if (isinstance(ret, long)):
+            if (isinstance(ret, int)):
                 logging.debug("ID: %s" % ret)
                 if (ret == 0x42A5):
                     logging.debug("Found connection")

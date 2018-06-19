@@ -43,10 +43,10 @@ class BaseIf:
     def send_cmd(self, send_cmd):
         cmd_info = IfParams()
         logging.debug("Sending: " + send_cmd)
-        self.__dev.write(send_cmd + '\n')
+        self.__dev.write((send_cmd + '\n').encode('utf-8'))
         cmd_info.cmd = send_cmd
-        response = self.__dev.readline()
-        logging.debug("Response: " + response.replace('\n', ''))
+        response = self.__dev.readline().decode("utf-8")
+        logging.debug("Response: %s" % response.replace('\n', ''))
         if (response == ""):
             cmd_info.result = self.__RESULT_TIMEOUT
             logging.debug(self.__RESULT_TIMEOUT)
@@ -57,7 +57,7 @@ class BaseIf:
                 if (len(data) > 1):
                     try:
                         if (len(data[1]) - 2 <= 8):
-                            cmd_info.data = long(data[1], 0)
+                            cmd_info.data = int(data[1], 0)
                         else:
                             d_len = len(data[1]) - 1
                             cmd_info.data = bytearray.fromhex(data[1][2:d_len])
@@ -113,7 +113,7 @@ class BaseIf:
         if (cmd_info.result != self.__RESULT_SUCCESS):
             return cmd_info
         cmd_sent += cmd_info.cmd
-        bit_mask = long((2 ** bit_amount) - 1)
+        bit_mask = int((2 ** bit_amount) - 1)
         bit_mask = bit_mask << offset
         cmd_info.data = cmd_info.data & (~bit_mask)
         data = cmd_info.data | ((data << offset) & bit_mask)
