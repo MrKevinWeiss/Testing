@@ -179,7 +179,7 @@ def getBitfield(data):
         total_bits += int(val["bits"])
     str += "} %s;" % (data["type"])
 
-    if (types[data["bit_type"]] < ((total_bits/8) + 1)):
+    if (types[data["bit_type"]] < ((float(total_bits)/8))):
         raise ValueError("Too many bits in %s for %s" %
                          (data["type"], data["bit_type"]))
     types.update({data["type"]: types[data["bit_type"]]})
