@@ -3,7 +3,7 @@ import logging
 import errno
 import os
 import time
-
+import serial.tools.list_ports
 
 class IfParams:
     cmd = ''
@@ -24,6 +24,35 @@ class BaseIf:
 
     def __init__(self, port='/dev/ttyACM0', baud=115200):
         self.connect(port, baud)
+
+    def autoconnect(self, expected_val, fxn):
+        found_connection = False
+        comlist = serial.tools.list_ports.comports()
+        connected = []
+        logging.debug("Autoconnecting")
+        for element in comlist:
+            connected.append(element.device)
+        for port in connected:
+            logging.debug("Port: " + port)
+            self.connect(port)
+            ret = fxn().data
+            try:
+                logging.debug("ID: %s" % ret)
+                if (ret == expected_val):
+                    logging.debug("Found connection")
+                    found_connection = True
+                    break
+            except TypeError:
+                logging.debug("Cannot connect, type error")
+            self.disconnect()
+            if (isinstance(ret, int)):
+
+                if (ret == 0x42A5):
+                    logging.debug("Found connection")
+                    found_connection = True
+                    break
+            self.disconnect()
+        return found_connection
 
     def connect(self, port, baud=115200, timeout=0.3):
         logging.debug("Connecting to " + port)

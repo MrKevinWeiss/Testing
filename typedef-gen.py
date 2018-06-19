@@ -10,13 +10,45 @@ primary_types = {'uint8_t': 1, 'int8_t': 1, 'uint16_t': 2, 'int16_t': 2,
                  'uint32_t': 4, 'int32_t': 4, 'uint64_t': 8, 'int64_t': 8}
 
 
+def __format_name(name):
+    name = name.replace('.', '_')
+    name = name.replace('[', '')
+    name = name.replace(']', '')
+    return name
+
+
+def __get_getter(record):
+    str = "    def get_%s(self):\n" % __format_name(record['name'])
+    str += "        return self.read_bytes(%d, %d)\n" % (record['offset'], record['size'])
+    return str
+
+
+def __get_setter(record):
+    str = "    def set_%s(self, data=0):\n" % __format_name(record['name'])
+    str += "        return self.write_bytes(%d, data, %d)\n" % (record['offset'], record['size'])
+    return str
+
+
+def get_if(map, name):
+    str = "import base_if\n\n\n"
+    str += "class %s(base_if.BaseIf)\n\n" % name
+
+    for record in map:
+        str += __get_getter(record)
+        str += '\n'
+        str += __get_setter(record)
+        str += '\n'
+
+    str += "    def get_command_list(self):\n"
+    str += "        cmds = list()\n"
+    for record in map:
+        str += "        cmds.append(self.set_%s)\n" % __format_name(record['name'])
+        str += "        cmds.append(self.get_%s)\n" % __format_name(record['name'])
+    str += "        return cmds\n"
+    return str
+
+
 def get_mem_map(name, map, elements):
-
-
-    #if map[-1]["name"] != "":
-        #map[-1]["name"] += "."
-    #map[-1]["name"] += elements["name"]
-
     for element in elements:
 
         if ("elements" in element):
@@ -48,8 +80,6 @@ def get_mem_map(name, map, elements):
                 map[-1]["name"] += "[%d]" % element["array_size"]
         else:
             raise ValueError("ERROR1: type not primary or contains elements")
-
-
 
 
 def update_offsets(elements, offset):
@@ -254,5 +284,9 @@ str = "Name,Size,Offset,Description\n"
 for line in mem_map:
     str += "%s,%d,%d,%s\n" % (line["name"], line["size"], line["offset"], line["description"])
 f.write(str)
+f.close()
 
+str = get_if(mem_map, "bpt_if")
+f = open(("bpt_if.py"), 'w')
+f.write(str)
 f.close()
