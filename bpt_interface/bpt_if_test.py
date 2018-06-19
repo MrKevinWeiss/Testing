@@ -5,6 +5,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--log", help='Set the logging level (DEBUG, INFO, WARN)')
+parser.add_argument("--port", help='Serial port for BPT communication')
 args = parser.parse_args()
 
 if args.log is not None:
@@ -14,7 +15,7 @@ if args.log is not None:
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=loglevel)
 
-bpt = bpt_if.BptIf()
+bpt = bpt_if.BptIf(args.port)
 bpt.execute_changes()
 bpt.reset_mcu()
 cmds = bpt.get_command_list()
