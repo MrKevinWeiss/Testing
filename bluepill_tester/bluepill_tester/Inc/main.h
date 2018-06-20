@@ -59,6 +59,63 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define LED0_Pin GPIO_PIN_13
+#define LED0_GPIO_Port GPIOC
+#define DEBUG0_Pin GPIO_PIN_0
+#define DEBUG0_GPIO_Port GPIOA
+#define DEBUG1_Pin GPIO_PIN_1
+#define DEBUG1_GPIO_Port GPIOA
+#define DEBUG2_Pin GPIO_PIN_2
+#define DEBUG2_GPIO_Port GPIOA
+#define DEBUG3_Pin GPIO_PIN_3
+#define DEBUG3_GPIO_Port GPIOA
+#define TEST_FAIL_Pin GPIO_PIN_4
+#define TEST_FAIL_GPIO_Port GPIOA
+#define TEST_WARN_Pin GPIO_PIN_5
+#define TEST_WARN_GPIO_Port GPIOA
+#define TEST_PASS_Pin GPIO_PIN_6
+#define TEST_PASS_GPIO_Port GPIOA
+#define DUT_ADC_Pin GPIO_PIN_7
+#define DUT_ADC_GPIO_Port GPIOA
+#define PM_V_ADC_Pin GPIO_PIN_0
+#define PM_V_ADC_GPIO_Port GPIOB
+#define PM_A_ADC_Pin GPIO_PIN_1
+#define PM_A_ADC_GPIO_Port GPIOB
+#define DUT_TX_Pin GPIO_PIN_10
+#define DUT_TX_GPIO_Port GPIOB
+#define DUT_RX_Pin GPIO_PIN_11
+#define DUT_RX_GPIO_Port GPIOB
+#define DUT_RST_Pin GPIO_PIN_12
+#define DUT_RST_GPIO_Port GPIOB
+#define DUT_CTS_Pin GPIO_PIN_13
+#define DUT_CTS_GPIO_Port GPIOB
+#define DUT_RTS_Pin GPIO_PIN_14
+#define DUT_RTS_GPIO_Port GPIOB
+#define USER_BTN_Pin GPIO_PIN_15
+#define USER_BTN_GPIO_Port GPIOB
+#define DUT_IC_Pin GPIO_PIN_8
+#define DUT_IC_GPIO_Port GPIOA
+#define IF_TX_Pin GPIO_PIN_9
+#define IF_TX_GPIO_Port GPIOA
+#define IF_RX_Pin GPIO_PIN_10
+#define IF_RX_GPIO_Port GPIOA
+#define DUT_NSS_Pin GPIO_PIN_15
+#define DUT_NSS_GPIO_Port GPIOA
+#define DUT_SCK_Pin GPIO_PIN_3
+#define DUT_SCK_GPIO_Port GPIOB
+#define DUT_MISO_Pin GPIO_PIN_4
+#define DUT_MISO_GPIO_Port GPIOB
+#define DUT_MOSI_Pin GPIO_PIN_5
+#define DUT_MOSI_GPIO_Port GPIOB
+#define DUT_SCL_Pin GPIO_PIN_6
+#define DUT_SCL_GPIO_Port GPIOB
+#define DUT_SDA_Pin GPIO_PIN_7
+#define DUT_SDA_GPIO_Port GPIOB
+#define DUT_DAC_Pin GPIO_PIN_8
+#define DUT_DAC_GPIO_Port GPIOB
+#define DUT_PWM_Pin GPIO_PIN_9
+#define DUT_PWM_GPIO_Port GPIOB
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
