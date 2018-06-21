@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-
 /*
  * @file serial_com.h
  * @author Kevin Weiss
@@ -40,7 +39,6 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-
 /* Public Functions ----------------------------------------------------------*/
 /**
  * @brief Initializes and attaches all the pointers for communication.
@@ -55,6 +53,5 @@ error_t app_com_init(UART_HandleTypeDef *huart);
  * @retval errno defined error code.
  */
 error_t app_com_poll();
-
 
 #endif /* SERIAL_COM_H_ */

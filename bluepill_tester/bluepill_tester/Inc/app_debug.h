@@ -18,5 +18,4 @@ void debug_print(char *str);
 #define DEBUG_MSG(x)
 #endif
 
-
 #endif /* APP_DEBUG_H_ */

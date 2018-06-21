@@ -26,7 +26,6 @@
  */
 #define SOFT_RESET NVIC_SystemReset()
 
-
 void delay_us(uint16_t micros);
 
 #endif /* APP_COMMON_H_ */

@@ -123,7 +123,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
-
+	int32_t led_tick = 0;
 	/* USER CODE END 1 */
 
 	/* MCU Configuration----------------------------------------------------------*/
@@ -160,7 +160,6 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	app_com_init(&H_IF_UART);
 
-
 	app_i2c_init(&H_DUT_I2C);
 	app_uart_init(&H_DUT_UART);
 	execute_reg_change();
@@ -169,6 +168,10 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		if (led_tick < HAL_GetTick()) {
+			led_tick = HAL_GetTick() + 250;
+			HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+		}
 		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
 		}
 		app_com_poll();
@@ -566,7 +569,7 @@ static void MX_GPIO_Init(void) {
 					| TEST_WARN_Pin | TEST_PASS_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(DUT_RST_GPIO_Port, DUT_RST_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DUT_RST_GPIO_Port, DUT_RST_Pin, GPIO_PIN_SET);
 
 	/*Configure GPIO pin : LED0_Pin */
 	GPIO_InitStruct.Pin = LED0_Pin;
@@ -584,7 +587,7 @@ static void MX_GPIO_Init(void) {
 
 	/*Configure GPIO pin : DUT_RST_Pin */
 	GPIO_InitStruct.Pin = DUT_RST_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(DUT_RST_GPIO_Port, &GPIO_InitStruct);
 
