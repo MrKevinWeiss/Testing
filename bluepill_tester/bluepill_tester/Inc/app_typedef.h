@@ -2,7 +2,7 @@
  * Filename: bpt_mem_map.h
  * Author: Kevin Weiss
  * Revision: 1.00.00
-*/
+ */
 
 #ifndef BPT_MEM_MAP_H_
 #define BPT_MEM_MAP_H_
@@ -33,6 +33,11 @@ typedef union timestamp_t_TAG {
 	uint8_t data8[8];
 } timestamp_t;
 
+/* Specific modes for I2C */
+typedef struct sys_cr_t_TAG {
+	/* Specific modes for I2C */
+	uint8_t dut_rst :1;
+} sys_cr_t;
 /* System settings for the bpt */
 typedef union sys_t_TAG {
 	struct {
@@ -44,8 +49,10 @@ typedef union sys_t_TAG {
 		timestamp_t build_time;
 		/* A constant number that should always be the same */
 		uint32_t device_num;
+		/* Specific modes for I2C */
+		sys_cr_t cr;
 		/* reserve bytes */
-		uint8_t res[4];
+		uint8_t res[3];
 	};
 	uint8_t data8[32];
 } sys_t;
@@ -53,15 +60,15 @@ typedef union sys_t_TAG {
 /* Specific modes for I2C */
 typedef struct i2c_mode_t_TAG {
 	/* Specific modes for I2C */
-	uint8_t addr_10_bit : 1;
+	uint8_t addr_10_bit :1;
 	/* Specific modes for I2C */
-	uint8_t general_call : 1;
+	uint8_t general_call :1;
 	/* Specific modes for I2C */
-	uint8_t no_clk_stretch : 1;
+	uint8_t no_clk_stretch :1;
 	/* Specific modes for I2C */
-	uint8_t reg_16_bit : 1;
+	uint8_t reg_16_bit :1;
 	/* Specific modes for I2C */
-	uint8_t disable : 1;
+	uint8_t disable :1;
 } i2c_mode_t;
 /* System settings for the bpt */
 typedef union i2c_t_TAG {
@@ -166,8 +173,6 @@ typedef union tmr_t_TAG {
 		uint32_t hi_us;
 		/*  */
 		uint32_t lo_us;
-		/* reserve bytes */
-		uint8_t res[0];
 	};
 	uint8_t data8[16];
 } tmr_t;

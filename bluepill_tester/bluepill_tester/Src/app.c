@@ -11,6 +11,7 @@
 
 #include "stm32f1xx_hal.h"
 
+#include "app_access.h"
 #include "app_errno.h"
 #include "app_typedef.h"
 #include "app_common.h"
@@ -20,20 +21,18 @@
 #include "app_uart.h"
 #include "app.h"
 
+static map_t reg = { 0 };
 
-static map_t reg = {0};
-
-//TODO: Add mode
 //TODO: Add i2c last amount of writes and reads
 //TODO: Support 16/8 bit address confirm
 //TODO: Add i2c bus reset or some kind of way to handle master collision detect
 //TODO: Write with repeated start vs no repeated start
 
-error_t _init_reg(map_t *reg_to_init){
+error_t _init_reg(map_t *reg_to_init) {
 	DIS_INT;
 	memset(reg_to_init->data8, 0, sizeof(*reg_to_init));
 
-	HAL_GetUID((uint32_t*)&reg_to_init->sys.sn[0]);
+	HAL_GetUID((uint32_t*) &reg_to_init->sys.sn[0]);
 	reg.sys.fw_rev = FW_REV;
 
 	reg_to_init->sys.build_time.second = BUILD_SEC;
@@ -52,27 +51,39 @@ error_t _init_reg(map_t *reg_to_init){
 
 	reg_to_init->uart.baud = DEFAULT_UART_BAUDRATE;
 
-	for (int i = 0; i < sizeof(reg_to_init->res); i++){
-		reg_to_init->res[i] = (uint8_t)i;
+	for (int i = 0; i < sizeof(reg_to_init->res); i++) {
+		reg_to_init->res[i] = (uint8_t) i;
 	}
 	EN_INT;
 	return EOK;
 }
 
-error_t execute_reg_change(){
-	static map_t prev_reg = {0};
+void app_sys_execute(sys_t *sys) {
+	if (sys->cr.dut_rst) {
+		HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_RESET);
+	} else {
+		HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_SET);
+	}
+}
+
+error_t execute_reg_change() {
+	static map_t prev_reg = { 0 };
 	static bool init = true;
 
-	if (init){
+	if (init) {
 		init = false;
 		_init_reg(&reg);
 	}
 
-	if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))){
+	if (memcmp(&prev_reg.sys, &reg.sys, sizeof(reg.sys))) {
+		app_sys_execute(&reg.sys);
+	}
+
+	if (memcmp(&prev_reg.i2c, &reg.i2c, sizeof(reg.i2c))) {
 		app_i2c_execute(&reg.i2c);
 	}
 
-	if (memcmp(&prev_reg.uart, &reg.uart, sizeof(reg.uart))){
+	if (memcmp(&prev_reg.uart, &reg.uart, sizeof(reg.uart))) {
 		app_uart_execute(&reg.uart);
 	}
 
@@ -80,44 +91,27 @@ error_t execute_reg_change(){
 	return EOK;
 }
 
-
-uint32_t get_reg_size(){
+uint32_t get_reg_size() {
 	return sizeof(reg);
 }
 
-error_t read_reg(uint32_t index, uint8_t *data){
-	if (index >= sizeof(reg)){
+error_t read_reg(uint32_t index, uint8_t *data) {
+	if (index >= sizeof(reg)) {
 		return EOVERFLOW;
-	}
-	else{
+	} else {
 		*data = reg.data8[index];
 		return EOK;
 	}
 	return EUNKNOWN;
 }
 
-error_t write_cfg_reg(uint32_t index, uint8_t data){
-	if (index < sizeof(sys_t)){
-		return EACCES;
-	}
-	else if (index >= sizeof(reg)){
-		return EOVERFLOW;
-	}
-	else{
-		reg.data8[index] = data;
-		return EOK;
-	}
-	return EUNKNOWN;
-}
+error_t write_reg(uint32_t index, uint8_t data, uint8_t access) {
 
-error_t write_user_reg(uint32_t index, uint8_t data){
-	if (index < offsetof(map_t, res)){
-		return EACCES;
-	}
-	else if (index >= sizeof(reg)){
+	if (index >= sizeof(reg)) {
 		return EOVERFLOW;
-	}
-	else{
+	} else if (!(REG_ACCESS[index] & access)) {
+		return EACCES;
+	} else {
 		reg.data8[index] = data;
 		return EOK;
 	}

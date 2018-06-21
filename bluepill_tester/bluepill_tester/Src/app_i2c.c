@@ -39,6 +39,7 @@
 
 #include "stm32f1xx_hal.h"
 
+#include "app_access.h"
 #include "app_errno.h"
 #include "app_common.h"
 #include "app_errno.h"
@@ -151,7 +152,7 @@ void i2c_err(I2C_HandleTypeDef* hi2c) {
 		}
 
 		/* I2C Arbitration Loss error interrupt occurred ---------------------------*/
-		if ((sr1itflags & I2C_FLAG_ARLO) != RESET){
+		if ((sr1itflags & I2C_FLAG_ARLO) != RESET) {
 			hi2c->ErrorCode |= HAL_I2C_ERROR_ARLO;
 			/* Clear ARLO flag */
 			__HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_ARLO);
@@ -207,7 +208,7 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 			reg_index = start_reg_index;
 		} else {
 			uint8_t data = hi2c->Instance->DR;
-			write_user_reg(reg_index, data);
+			write_reg(reg_index, data, USER_WRITE_ACCESS);
 			_add_index(&reg_index);
 		}
 	} else if (((sr1itflags & I2C_FLAG_BTF) != RESET)
@@ -218,7 +219,7 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 			reg_index = start_reg_index;
 		} else {
 			uint8_t data = hi2c->Instance->DR;
-			write_user_reg(reg_index, data);
+			write_reg(reg_index, data, USER_WRITE_ACCESS);
 			_add_index(&reg_index);
 		}
 	}

@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-
 /*
  ******************************************************************************
  * @file           : serial_com.c
@@ -40,6 +39,7 @@
 
 #include "stm32f1xx_hal.h"
 
+#include "app_access.h"
 #include "app_errno.h"
 #include "app_typedef.h"
 #include "app_common.h"
@@ -64,8 +64,6 @@
 
 #define IS_RX_WAITING(x)	(HAL_IS_BIT_SET(x, USART_CR3_DMAR))
 #define IS_NUM(x)			(x >= '0' && x <= '9')
-
-
 
 /* Private function prototypes -----------------------------------------------*/
 static error_t _tx_str(UART_HandleTypeDef *huart, char *str);
@@ -92,7 +90,7 @@ static UART_HandleTypeDef* huart_inst = NULL;
  * @retval errno defined error code.
  */
 error_t app_com_init(UART_HandleTypeDef *huart) {
-	char str[COM_BUF_SIZE] = {0};
+	char str[COM_BUF_SIZE] = { 0 };
 	sprintf(str, "0, Initialized, Build Date: %s %s\n", __DATE__, __TIME__);
 	error_t err = _tx_str(huart, str);
 	if (err == EOK) {
@@ -212,17 +210,13 @@ static error_t _tx_str(UART_HandleTypeDef *huart, char *str) {
 static error_t _parse_command(char *str) {
 	if (memcmp(str, READ_BYTE_CMD, strlen(READ_BYTE_CMD)) == 0) {
 		return _cmd_read_byte(str);
-	}
-	else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
+	} else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
 		return _cmd_read_reg(str);
-	}
-	else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0) {
+	} else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0) {
 		return _cmd_write_reg(str);
-	}
-	else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
+	} else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
 		return _cmd_execute(str);
-	}
-	else if (memcmp(str, RESET_CMD, strlen(RESET_CMD)) == 0) {
+	} else if (memcmp(str, RESET_CMD, strlen(RESET_CMD)) == 0) {
 		return _cmd_reset();
 	}
 
@@ -322,17 +316,16 @@ static error_t _cmd_write_reg(char *str) {
 			char *arg_str = str + strlen(WRITE_REG_CMD);
 			uint32_t val;
 			uint32_t index = _fast_atou(&arg_str, ' ');
-			if (index >= get_reg_size()){
+			if (index >= get_reg_size()) {
 				err = EOVERFLOW;
-			}
-			else {
+			} else {
 				arg_count--;
 				while (arg_count != 1) {
 					val = _fast_atou(&arg_str, ' ');
 					DIS_INT;
-					err = write_cfg_reg(index, val);
+					err = write_reg(index, val, CONFIG_WRITE_ACCESS);
 					EN_INT;
-					if (err != EOK){
+					if (err != EOK) {
 						return err;
 					}
 					index++;
@@ -343,9 +336,9 @@ static error_t _cmd_write_reg(char *str) {
 				}
 				val = _fast_atou(&arg_str, RX_END_CHAR);
 				DIS_INT;
-				err = write_cfg_reg(index, val);
+				err = write_reg(index, val, CONFIG_WRITE_ACCESS);
 				EN_INT;
-				if (err == EOK){
+				if (err == EOK) {
 					sprintf(str, "%d%s", EOK, TX_END_STR);
 				}
 			}
@@ -362,7 +355,7 @@ static error_t _cmd_write_reg(char *str) {
 static error_t _cmd_execute(char *str) {
 
 	error_t err = execute_reg_change();
-	if (err == EOK){
+	if (err == EOK) {
 		sprintf(str, "%d%s", EOK, TX_END_STR);
 	}
 	return err;
@@ -401,7 +394,7 @@ static error_t _valid_args(char *str, uint32_t *arg_count) {
 	return EMSGSIZE;
 }
 
-static error_t _cmd_reset(){
+static error_t _cmd_reset() {
 	SOFT_RESET;
 	return EUNKNOWN;
 }
@@ -462,7 +455,7 @@ static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart) {
 	return (COM_BUF_SIZE - huart->hdmarx->Instance->CNDTR);
 }
 
-void debug_print(char *str){
+void debug_print(char *str) {
 #ifdef DEBUG_PRINT
 	HAL_UART_AbortTransmit(huart_inst);
 	HAL_UART_Transmit_DMA(huart_inst, (uint8_t*) str, strlen(str));
