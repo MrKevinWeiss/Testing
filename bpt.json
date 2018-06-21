@@ -72,6 +72,19 @@
           "name" : "device_num",
           "type" : "uint32_t",
           "description" : "A constant number that should always be the same"
+        },
+        {
+          "name" : "cr",
+          "bit_type" : "uint8_t",
+          "type" : "sys_cr_t",
+          "bitfield" : [
+          {
+            "name" : "dut_rst",
+            "bits" : 1,
+            "description" : "resets the DUT"
+          }
+          ],
+          "description" : "Specific modes for I2C"
         }
       ]
     },

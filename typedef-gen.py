@@ -280,9 +280,14 @@ f.write(json.dumps(x))
 f.close()
 
 f = open((data["metadata"]["name"]+".csv"), 'w')
-str = "Name,Size,Offset,Description\n"
+str = "Name,Size,Offset,Description,Access\n"
 for line in mem_map:
-    str += "%s,%d,%d,%s\n" % (line["name"], line["size"], line["offset"], line["description"])
+    str += "%s,%d,%d,%s," % (line["name"], line["size"], line["offset"], line["description"])
+    for access_byte in range(line["size"]):
+        if (access_byte != 0):
+            str += "-"
+        str += "0x%02X" % 0x22
+    str += "-/* %s */\n" % line["name"]
 f.write(str)
 f.close()
 
