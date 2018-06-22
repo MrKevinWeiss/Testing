@@ -31,17 +31,17 @@ This is intended to provide tools for embedded testing.
 (examples will use periph_i2c test)
 1. Connect DUT to the testing computer.
 2. Connect the BPT to the USB to UART converter.  
-(pin13/PA3/RX2 of BPT <-> TX of USB to UART)  
-(pin12/PA2/TX2 of BPT <-> RX of USB to UART)
+(IF_RX of BPT <-> TX of USB to UART)  
+(IF_TX of BPT <-> RX of USB to UART)
 3. Connect specific pins required for testing the DUT to the BPT  
-(pin42/PB6/SCL1 of BPT <-> SCL0 of DUT)  
-(pin43/PB7/SDA1 of BPT <-> SDA0 of DUT)
+(DUT_SCL of BPT <-> SCL0 of DUT)  
+(DUT_SDA of BPT <-> SDA0 of DUT)
 4. Flash DUT with test firmware
 5. Run python script in the test folder
 
 # BPT Pinout
 <a href="resources/bptpinout.jpg">
-    <img src="resources/bptpinout.jpg" alt="drawing" width="500px"/>
+    <img src="resources/bptpinout.jpg" alt="drawing" width="720px"/>
 </a>
 
 # BPT Misc Info

@@ -33,6 +33,7 @@ tags
 
 # Eclipse symbol file (output from make eclipsesym)
 eclipsesym.xml
+.metadata/
 /toolchain
 # Ignore created Arduino sketch files
 _sketches.cpp

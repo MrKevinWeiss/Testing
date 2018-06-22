@@ -3,10 +3,10 @@ import base_if
 
 class BptIf(base_if.BaseIf):
 
-    def __init__(self, port=None, baud=115200):
+    def __init__(self, port=None, baud=115200, used_com=[]):
 
         if (port is None):
-            self.autoconnect(0x42A5, self.get_sys_device_num)
+            self.autoconnect(0x42A5, self.get_sys_device_num, used_com)
         else:
             self.connect(port, baud)
 

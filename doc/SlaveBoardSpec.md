@@ -125,7 +125,7 @@ To have a low cost, certified slave device that can be used to automate regressi
 - ?
 
 # Protocol Definition
-Register Based, up to 256 registers but not more.  UART will be the primary interface.  It will support basic commands like read and writing register, execute changes, and reset. 
+Register Based, up to 256 registers but not more.  UART will be the primary interface.  It will support basic commands like read and writing register, execute changes, and reset.
 
 ## I2C comms
 Default slave addr is 0x55, can be changed to 0 to 0x7F minus reserved addr

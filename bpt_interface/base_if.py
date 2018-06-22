@@ -26,13 +26,19 @@ class BaseIf:
     def __init__(self, port='/dev/ttyACM0', baud=115200):
         self.connect(port, baud)
 
-    def autoconnect(self, expected_val, fxn):
+    def get_port(self):
+        if (self.__dev.isOpen()):
+            return self.__dev.port
+        return []
+
+    def autoconnect(self, expected_val, fxn, used_com=[]):
         found_connection = False
         comlist = serial.tools.list_ports.comports()
         connected = []
         logging.debug("Autoconnecting")
         for element in comlist:
-            connected.append(element.device)
+            if (element.device not in used_com):
+                connected.append(element.device)
         for port in connected:
             logging.debug("Port: " + port)
             self.connect(port)
@@ -48,7 +54,10 @@ class BaseIf:
                 logging.debug("Cannot connect, type error")
             except ValueError:
                 logging.debug("Cannot connect, value error")
+            except Exception as e:
+                logging.debug(e.msg)
             self.disconnect()
+
         return found_connection
 
     def connect(self, port, baud=115200, timeout=0.3):
