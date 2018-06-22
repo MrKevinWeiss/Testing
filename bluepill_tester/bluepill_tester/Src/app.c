@@ -60,9 +60,9 @@ error_t _init_reg(map_t *reg_to_init) {
 
 void app_sys_execute(sys_t *sys) {
 	if (sys->cr.dut_rst) {
-		HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DUT_RST_GPIO_Port, DUT_RST_Pin, GPIO_PIN_RESET);
 	} else {
-		HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DUT_RST_GPIO_Port, DUT_RST_Pin, GPIO_PIN_SET);
 	}
 }
 
