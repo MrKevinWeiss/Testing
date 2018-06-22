@@ -5,6 +5,7 @@ import os
 import time
 import serial.tools.list_ports
 
+
 class IfParams:
     cmd = ''
     result = ''
@@ -37,20 +38,16 @@ class BaseIf:
             self.connect(port)
             ret = fxn().data
             try:
-                logging.debug("ID: %s" % ret)
+                logging.debug("ID rx: %s" % ret)
+                logging.debug("ID expected: %s" % expected_val)
                 if (ret == expected_val):
                     logging.debug("Found connection")
                     found_connection = True
                     break
             except TypeError:
                 logging.debug("Cannot connect, type error")
-            self.disconnect()
-            if (isinstance(ret, int)):
-
-                if (ret == 0x42A5):
-                    logging.debug("Found connection")
-                    found_connection = True
-                    break
+            except ValueError:
+                logging.debug("Cannot connect, value error")
             self.disconnect()
         return found_connection
 
@@ -95,11 +92,15 @@ class BaseIf:
                 cmd_info.msg = "EOK-command success [0]"
                 logging.debug(self.__RESULT_SUCCESS)
                 cmd_info.result = self.__RESULT_SUCCESS
-            else:
+            elif (isinstance(data[0], int)):
                 cmd_info.data = int(data[0], 0)
                 cmd_info.msg = "%s-%s [%d]" % (errno.errorcode[cmd_info.data],
                                                os.strerror(cmd_info.data),
                                                cmd_info.data)
+                logging.debug(self.__RESULT_ERROR)
+                cmd_info.result = self.__RESULT_ERROR
+            else:
+                cmd_info.msg = "Unknown Error"
                 logging.debug(self.__RESULT_ERROR)
                 cmd_info.result = self.__RESULT_ERROR
         return cmd_info

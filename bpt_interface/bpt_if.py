@@ -1,54 +1,6 @@
 import base_if
 
 
-"""
-    def get_sn(self):
-        return self.read_bytes(0, 12)
-
-    def get_fw_rev(self):
-        return self.read_bytes(12, 4)
-
-    def get_build_time(self):
-        cmd_info = self.read_bytes(16, 8)
-        return cmd_info
-
-    def get_device_num(self):
-        return self.read_bytes(24, 4)
-
-    def get_i2c_addr_1(self):
-        return self.read_bytes(32 + 6, 2)
-
-    def set_i2c_addr_1(self, data=0x55):
-        return self.write_bytes(32 + 6, data, 2)
-
-    def get_i2c_addr_2(self):
-        return self.read_bytes(32 + 8, 2)
-
-    def set_i2c_addr_2(self, data=0x7F):
-        return self.write_bytes(32 + 8, data, 2)
-
-    def get_i2c_10_bit_addr(self):
-        return self.read_bits(32, 1, 1)
-
-    def set_i2c_10_bit_addr(self, data=0):
-        return self.write_bits(32, 1, 1, data)
-
-    def get_command_list(self):
-        cmds = list()
-        cmds.append(self.get_sn)
-        cmds.append(self.get_fw_rev)
-        cmds.append(self.get_build_time)
-        cmds.append(self.get_device_num)
-        cmds.append(self.set_i2c_addr_1)
-        cmds.append(self.get_i2c_addr_1)
-        cmds.append(self.get_i2c_addr_2)
-        cmds.append(self.set_i2c_addr_2)
-        cmds.append(self.get_i2c_10_bit_addr)
-        cmds.append(self.set_i2c_10_bit_addr)
-        return cmds
-"""
-
-
 class BptIf(base_if.BaseIf):
 
     def __init__(self, port=None, baud=115200):
@@ -124,11 +76,17 @@ class BptIf(base_if.BaseIf):
     def set_sys_device_num(self, data=0):
         return self.write_bytes(24, data, 4)
 
-    def get_sys_res4(self):
-        return self.read_bytes(28, 4)
+    def get_sys_cr(self):
+        return self.read_bytes(28, 1)
 
-    def set_sys_res4(self, data=0):
-        return self.write_bytes(28, data, 4)
+    def set_sys_cr(self, data=0):
+        return self.write_bytes(28, data, 1)
+
+    def get_sys_res3(self):
+        return self.read_bytes(29, 3)
+
+    def set_sys_res3(self, data=0):
+        return self.write_bytes(29, data, 3)
 
     def get_i2c_mode(self):
         return self.read_bytes(32, 1)
@@ -442,8 +400,10 @@ class BptIf(base_if.BaseIf):
         cmds.append(self.get_sys_build_time_res1)
         cmds.append(self.set_sys_device_num)
         cmds.append(self.get_sys_device_num)
-        cmds.append(self.set_sys_res4)
-        cmds.append(self.get_sys_res4)
+        cmds.append(self.set_sys_cr)
+        cmds.append(self.get_sys_cr)
+        cmds.append(self.set_sys_res3)
+        cmds.append(self.get_sys_res3)
         cmds.append(self.set_i2c_mode)
         cmds.append(self.get_i2c_mode)
         cmds.append(self.set_i2c_error_code)
