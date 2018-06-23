@@ -35,7 +35,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <errno.h>
 
 #include "stm32f1xx_hal.h"
 
@@ -45,9 +44,37 @@
 #include "app_typedef.h"
 #include "app.h"
 #include "app_debug.h"
+#include "app_uart.h"
+
+/* Defines -------------------------------------------------------------------*/
+#define COM_BUF_SIZE	((uint16_t)1024)//((uint16_t)256)
+
+#define RX_END_CHAR		'\n'
+#define TX_END_STR		"\n"
+#define READ_BYTE_CMD	"rb "
+#define READ_REG_CMD	"rr "
+#define WRITE_REG_CMD	"wr "
+#define EXECUTE_CMD		"ex\n"
+#define RESET_CMD		"mcu_rst\n"
+
+#define ATOU_MAX_CHAR	5
+#define ATOU_ERROR		0xFFFFFFFF
+#define BYTE_MAX		((uint8_t)0xFF)
+
+#define IS_RX_WAITING(x)	(HAL_IS_BIT_SET(x, USART_CR3_DMAR))
+#define IS_NUM(x)			(x >= '0' && x <= '9')
+
+/* Private function prototypes -----------------------------------------------*/
+static error_t _tx_str(UART_HandleTypeDef *huart, char *str);
+static error_t _rx_str(UART_HandleTypeDef *huart, char *str);
+static error_t _xfer_complete(UART_HandleTypeDef *huart, char *str);
+
+static error_t _parse_command(char *str);
+static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart);
 
 /* Private variables ---------------------------------------------------------*/
-static UART_HandleTypeDef *huart1_inst;
+static UART_HandleTypeDef *huart_inst;
+static uint8_t mode;
 
 /**
  * @brief Initializes and attaches all the pointers for communication.
@@ -55,7 +82,7 @@ static UART_HandleTypeDef *huart1_inst;
  * @retval errno defined error code.
  */
 error_t app_uart_init(UART_HandleTypeDef *huart) {
-	huart1_inst = huart;
+	huart_inst = huart;
 	return EOK;
 }
 
@@ -65,6 +92,139 @@ error_t app_uart_init(UART_HandleTypeDef *huart) {
  * @retval errno defined error code.
  */
 error_t app_uart_execute(uart_t *uart) {
-	huart1_inst->Init.BaudRate = uart->baud;
+	huart_inst->Init.BaudRate = uart->baud;
+	mode = uart->mode;
 	return EOK;
+}
+
+/**
+ * @brief Polls and parses the rx and tx buffers.
+ *
+ * @retval errno defined error code.
+ */
+error_t app_uart_poll() {
+	static char str[COM_BUF_SIZE] = { 0 };
+	error_t err = ENOACTION;
+
+	if (IS_RX_WAITING(huart_inst->Instance->CR3)) {
+		err = _rx_str(huart_inst, str);
+	} else if (huart_inst->TxXferCount == 0) {
+		if (str[COM_BUF_SIZE - 1] != 0) {
+			err = EMSGSIZE;
+			HAL_UART_AbortTransmit(huart_inst);
+			HAL_UART_AbortReceive(huart_inst);
+			memset(str, 0, COM_BUF_SIZE);
+			sprintf(str, "%d%s", err, TX_END_STR);
+			HAL_UART_Transmit_DMA(huart_inst, (uint8_t*) str, strlen(str));
+		} else {
+			err = _xfer_complete(huart_inst, str);
+		}
+	}
+	return err;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static error_t _xfer_complete(UART_HandleTypeDef *huart, char *str) {
+	HAL_StatusTypeDef status;
+	error_t err = EUNKNOWN;
+
+	memset(str, 0, COM_BUF_SIZE);
+	HAL_UART_AbortTransmit(huart_inst);
+	HAL_UART_AbortReceive(huart_inst);
+	status = HAL_UART_Receive_DMA(huart, (uint8_t*) str, COM_BUF_SIZE);
+	if (status == HAL_BUSY) {
+		err = EBUSY;
+	}
+	if (status == HAL_ERROR) {
+		err = ENXIO;
+	} else if (status == HAL_OK) {
+		err = EOK;
+	}
+	return err;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static error_t _rx_str(UART_HandleTypeDef *huart, char *str) {
+	int32_t rx_amount;
+	error_t err = ENOACTION;
+	rx_amount = _get_rx_amount(huart);
+	if (rx_amount >= 1) {
+		if (str[rx_amount - 1] == RX_END_CHAR
+				&& _get_rx_amount(huart) != COM_BUF_SIZE) {
+			HAL_UART_AbortTransmit(huart);
+			HAL_UART_AbortReceive(huart);
+			err = _parse_command(str);
+			if (err == EOK) {
+				HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+			} else {
+				sprintf(str, "%d%s", err, TX_END_STR);
+				HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+			}
+		}
+	}
+	return err;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static error_t _tx_str(UART_HandleTypeDef *huart, char *str) {
+	error_t err = EUNKNOWN;
+	HAL_StatusTypeDef status = HAL_UART_Transmit_DMA(huart, (uint8_t*) str,
+			strlen(str));
+
+	if (status == HAL_BUSY) {
+		HAL_UART_AbortTransmit(huart);
+		HAL_UART_AbortReceive(huart);
+		status = HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+		if (status == HAL_BUSY) {
+			err = EBUSY;
+		}
+	}
+	if (status == HAL_ERROR) {
+		err = ENXIO;
+	} else if (status == HAL_OK) {
+		err = EOK;
+	}
+
+	return err;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static error_t _parse_command(char *str) {
+	int i;
+	switch(mode) {
+	case MODE_ECHO:
+		return EOK;
+	case MODE_ECHO_EXT:
+		for (i = 0; i < strlen(str) - 1; i++) {
+			str[i]++;
+		}
+		return EOK;
+
+	}
+	return EPROTONOSUPPORT;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart) {
+	return (COM_BUF_SIZE - huart->hdmarx->Instance->CNDTR);
 }
