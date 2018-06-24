@@ -201,6 +201,100 @@ static error_t _tx_str(UART_HandleTypeDef *huart, char *str) {
 }
 
 /**
+ * @brief Private function, only handles controlled inputs.
+ *
+ * @retval numerical value from the string.
+ */
+uint32_t _fast_atou(char **str, char terminator) {
+	uint32_t val = 0;
+	char *first_str = *str;
+
+	if (**str == terminator) {
+		return ATOU_ERROR;
+	}
+
+	if ((*str)[0] == '0' && (*str)[1] == 'x') {
+		*str += 2;
+		while (**str != terminator) {
+			if ((uint32_t) (*str - first_str) >= ATOU_MAX_CHAR) {
+				return ATOU_ERROR;
+			} else if (IS_NUM(**str)) {
+				val = (val << 4) + (**str - '0');
+				(*str)++;
+			} else if (**str >= 'a' && **str <= 'f') {
+				val = (val << 4) + (**str - 'a' + 10);
+				(*str)++;
+			} else if (**str >= 'A' && **str <= 'F') {
+				val = (val << 4) + (**str - 'A' + 10);
+				(*str)++;
+			} else {
+				return ATOU_ERROR;
+			}
+		}
+	} else {
+		while (**str != terminator) {
+			if ((uint32_t) (*str - first_str) >= ATOU_MAX_CHAR) {
+				return ATOU_ERROR;
+			} else if (!IS_NUM(**str)) {
+				return ATOU_ERROR;
+			} else {
+				val = val * 10 + (**str - '0');
+				(*str)++;
+			}
+		}
+	}
+	(*str)++;
+	return val;
+}
+
+static error_t _cmd_read_reg(char *str) {
+	char *first_str = str;
+	char *arg_str = str + strlen(READ_REG_CMD);
+	uint32_t index = _fast_atou(&arg_str, ' ');
+
+	if (index == ATOU_ERROR) {
+		return EINVAL;
+	} else if (index >= get_reg_size()) {
+		return EOVERFLOW;
+	} else {
+		uint32_t size = _fast_atou(&arg_str, RX_END_CHAR);
+		if (size == ATOU_ERROR) {
+			return EINVAL;
+		} else if ((size * 2) + strlen(TX_END_STR)
+				+ strlen("0,0x") >= COM_BUF_SIZE) {
+			return ERANGE;
+		} else {
+			uint8_t data;
+			str += sprintf(str, "%d,0x", EOK);
+			index += size;
+			if (index > get_reg_size()) {
+				index -= get_reg_size();
+			}
+			while (size > 0) {
+				index--;
+				size--;
+
+				DIS_INT;
+				read_reg(index, &data);
+				EN_INT;
+
+				if (index == 0) {
+					index = get_reg_size();
+				}
+				if ((str - first_str) + 2 + strlen(TX_END_STR) < COM_BUF_SIZE) {
+					str += sprintf(str, "%02X", data);
+				} else {
+					return ERANGE;
+				}
+			}
+			sprintf(str, TX_END_STR);
+			return EOK;
+		}
+	}
+	return EUNKNOWN;
+}
+
+/**
  * @brief Private function
  *
  * @retval errno defined error code.
@@ -215,7 +309,11 @@ static error_t _parse_command(char *str) {
 			str[i]++;
 		}
 		return EOK;
-
+	case MODE_REG:
+		if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
+			return _cmd_read_reg(str);
+		}
+		return EPROTONOSUPPORT;
 	}
 	return EPROTONOSUPPORT;
 }

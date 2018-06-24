@@ -42,8 +42,7 @@ class RiotProtocolTest(object):
             logging.error("Wrong string received")
             return False
 
-        for item in result:
-            logging.debug(item)
+        logging.debug('Received string: {}'.format(result))
 
         return True
 
@@ -75,8 +74,36 @@ class RiotProtocolTest(object):
             logging.error("Wrong string received")
             return False
 
-        for item in result:
-            logging.debug(item)
+        logging.debug('Received string: {}'.format(result))
+
+        return True
+
+
+    def reg_read_test(self):
+        # set UART mode to echo_ext
+        cmd_info = self.bpt.set_uart_mode(2)
+        if cmd_info.result != 'Success':
+            logging.error("Failed to set UART mode: {}".format(cmd_info.result))
+            return False
+
+        cmd_info = self.bpt.execute_changes()
+        if cmd_info.result != 'Success':
+            logging.error("Failed to excute changes: {}".format(cmd_info.result))
+            return False
+
+        test_str = 'rr 152 10\n'
+        try:
+            self.dev.write(test_str.encode('utf-8'))
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err.msg)
+            return False
+
+        if result != b'0,0x09080706050403020100\n':
+            logging.error("Wrong string received")
+            return False
+
+        logging.debug('Received string: {}'.format(result))
 
         return True
 
@@ -94,7 +121,7 @@ def main():
             raise ValueError('Invalid log level: %s' % loglevel)
         logging.basicConfig(level=loglevel)
 
-    test = RiotProtocolTest(dut_port='/dev/ttyUSB1')
+    test = RiotProtocolTest(port='/dev/ttyUSB0', dut_port='/dev/ttyUSB1')
     if test.echo_test():
         logging.info("Echo test: OK")
     else:
@@ -105,6 +132,10 @@ def main():
     else:
         logging.info("Echo extended test: failed")
 
+    if test.reg_read_test():
+        logging.info("Register read test: OK")
+    else:
+        logging.info("Register read test: failed")
 
 if __name__ == "__main__":
     main()
