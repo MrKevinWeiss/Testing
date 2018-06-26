@@ -4,15 +4,65 @@
 
 import logging
 import argparse
-from bpt_if import BptIf
 
 import serial
 
+from bpt_if import BptIf
+
+
 class RiotProtocolTest(object):
+
+    def autoconnect(self, used_com=[]):
+        cmd_info = self.bpt.set_uart_mode()
+        if cmd_info.result != 'Success':
+            logging.error(
+                "Failed to set UART mode: {}".format(cmd_info.result))
+            return None
+
+        cmd_info = self.bpt.execute_changes()
+        if cmd_info.result != 'Success':
+            logging.error(
+                "Failed to excute changes: {}".format(cmd_info.result))
+            return None
+
+        found_connection = False
+        comlist = serial.tools.list_ports.comports()
+        connected = []
+        logging.debug("Autoconnecting")
+        for element in comlist:
+            if (element.device not in used_com):
+                connected.append(element.device)
+        for port in connected:
+            logging.debug("Port: " + port)
+            self.dev = serial.serial_for_url(
+                port, baudrate=115200, timeout=0.1)
+            expected_val = b'\x30\x30\x0a'
+            self.dev.write(expected_val)
+            ret = self.dev.readline()
+            try:
+                logging.debug("ID rx: %s" % ret)
+                logging.debug("ID expected: %s" % expected_val)
+                if (ret == expected_val):
+                    logging.debug("Found connection")
+                    found_connection = True
+                    break
+            except TypeError:
+                logging.debug("Cannot connect, type error")
+            except ValueError:
+                logging.debug("Cannot connect, value error")
+            except Exception as e:
+                logging.debug(e)
+            self.dev.close()
+
+        return found_connection
 
     def __init__(self, port=None, dut_port=None):
         self.bpt = BptIf(port=port)
-        self.dev = serial.serial_for_url(dut_port, baudrate=115200, timeout=1)
+        if dut_port is None:
+            self.autoconnect(used_com=[self.bpt.get_port()])
+        else:
+            self.dev = serial.serial_for_url(
+                dut_port, baudrate=115200, timeout=1)
 
     def echo_test(self):
         # set UART mode to echo
@@ -31,7 +81,7 @@ class RiotProtocolTest(object):
             self.dev.write(test_str)
             result = self.dev.readline()
         except Exception as err:
-            logging.error(err.msg)
+            logging.error(err)
             return False
 
         if len(result) != 3:
@@ -63,7 +113,7 @@ class RiotProtocolTest(object):
             self.dev.write(test_str)
             result = self.dev.readline()
         except Exception as err:
-            logging.error(err.msg)
+            logging.error(err)
             return False
 
         if len(result) != 3:
@@ -96,7 +146,7 @@ class RiotProtocolTest(object):
             self.dev.write(test_str.encode('utf-8'))
             result = self.dev.readline()
         except Exception as err:
-            logging.error(err.msg)
+            logging.error(err)
             return False
 
         if result != b'0,0x09080706050403020100\n':
@@ -110,7 +160,8 @@ class RiotProtocolTest(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log", help='Set the logging level (DEBUG, INFO, WARN)')
+    parser.add_argument(
+        "--log", help='Set the logging level (DEBUG, INFO, WARN)')
     parser.add_argument("--port", help='Serial port for BPT communication')
     args = parser.parse_args()
 
@@ -121,7 +172,8 @@ def main():
             raise ValueError('Invalid log level: %s' % loglevel)
         logging.basicConfig(level=loglevel)
 
-    test = RiotProtocolTest(port='/dev/ttyUSB0', dut_port='/dev/ttyUSB1')
+    #test = RiotProtocolTest(port='/dev/ttyUSB0', dut_port='/dev/ttyUSB1')
+    test = RiotProtocolTest()
     if test.echo_test():
         logging.info("Echo test: OK")
     else:
@@ -136,6 +188,7 @@ def main():
         logging.info("Register read test: OK")
     else:
         logging.info("Register read test: failed")
+
 
 if __name__ == "__main__":
     main()
