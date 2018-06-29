@@ -283,11 +283,21 @@ f = open((data["metadata"]["name"]+".csv"), 'w')
 str = "Name,Size,Offset,Description,Access\n"
 for line in mem_map:
     str += "%s,%d,%d,%s," % (line["name"], line["size"], line["offset"], line["description"])
+f.write(str)
+f.close()
+
+f = open(("app_access.c"), 'w')
+str = "#include \"app_access.h\"\n\n"
+str += "const uint8_t REG_ACCESS[] = { \n"
+size = 0
+for line in mem_map:
     for access_byte in range(line["size"]):
         if (access_byte != 0):
-            str += "-"
+            str += ", "
         str += "0x%02X" % 0x22
-    str += "-/* %s */\n" % line["name"]
+        size += 1
+    str += ",/* %s */\n" % line["name"]
+str += "/* total size %d */\n" % size
 f.write(str)
 f.close()
 
