@@ -1,68 +1,149 @@
 # Purpose
 
-To have a low cost, certified slave device that can be used to automate regression testing of basic peripherals.
+The purpose of this specification is to identify an easily acquirable or reproducible, certified slave device (the BPT or bluepill tester) that can be used to automate regression testing of basic peripherals such as UART, I2C, SPI, etc.  The slave board shall be usable offline by developers and/or within a HiL (hardware in the loop) CI (continuous integration) framework.
 
-# Problems
+# Abbreviations
+**BPT** - Bluepill Tester  
+**CI** - Continuous Integration   
+**DUT** - Device Under Tests  
+**HiL** - Hardware In The Loop  
+**FW** - Firmware  
+**SN** - Serial Number  
+**RPi** - Raspberry Pi 3  
 
-- Sensors and other slave devices cannot test all configurable modes
-- RPi does not support low level testing
-- Standard Arduino extensions don't support all configurable features well
-- Standard test tools from DIOLAN and Total Phase require licenses and are expensive
 
-# Requirements
+# Technical Requirements Of Slave Device Hardware
 
-- Operate with 3.3V boards and 5V boards
-- Reasonably low cost
-- Can be build/ordered by anyone
-- SPI slave with different modes, up to 24 MHz
-- I2C slave with different addresses, up to 3.4 MHz, no internal pullup
-- UART with modem support, baudrate up to 256000 bps, parity, stop bit
-- ADC values can be streamed
-- GPIO input
-- GPIO output
-- CCP with resolution to count ? MHz
-- Clock Output of stable 10 1KHz
-- Serial Number/Firmware Revision for tractability
+|                               Requirement                               	| Reason                                                   	| Implementation                                     	|
+|:-----------------------------------------------------------------------:	|----------------------------------------------------------	|----------------------------------------------------	|
+| 3.3V core voltage, 5V tolerant pins                                     	| Some boards that must be tested are either 3.3V or 5V    	| All pins DUT pins but ADC                          	|
+| Reasonably low cost (2 to 15 USD)                                       	| Allows for scalablility and makes it accessable to users 	| 2.36 USD on Ebay, [bluepill](http://wiki.stm32duino.com/index.php?title=Blue_Pill) with a STM32F103C8 MCU                                   	|
+| GPIO output for reset of DUT                                            	| Prevent hanging and get DUT to known state               	| (PB12) DUT_RST                                     	|
+| UART with modem support                                                 	| Test DUT UART features                                   	| (UART3) DUT_CTS, DUT_RTS, DUT_RX, DUT_TX           	|
+| Frequency measurement (input capture)                                   	| Test if DUT clocks/timers/pwm is correct                 	| (T1C1) DUT_IC                                      	|
+| SPI slave with settable modes, speed up to 24 MHz, optional chip select 	| Test DUT master SPI features                             	| (SPI1) DUT_NSS, DUT_SCK, DUT_MISO, DUT_MOSI        	|
+| I2C slave with settable address, speed up to 3.4 MHz, settable pullups  	| Test DUT master I2C features                             	| (I2C1) DUT_SCL, DUT_SDA                            	|
+| DAC                                                                     	| Test DUT ADC values and linearity                        	| (T4C3) DUT_DAC [1] [2]                           	|
+| PWM/clock output                                                        	| Test DUT timer reading and input capture                 	| (T4C4) DUT_PWM [2]                                	|
+| Power monitoring                                                        	| Test DUT low power modes                                 	| (ADC) PM_A_ADC, PM_V_ADC (3) [5]                     	|
+| ADC                                                                     	| Test DUT DAC or signals                                  	| (ADC) DUT_ADC [5]                                      	|
+| Flashing LED                                                            	| Show status of testing device                            	| (PC13) LED0                                        	|
+| Computer interface                                                      	| To configure and get testing device information          	| (USB or UART1) USB_DM, USB_DP or IF_RX, IF_RX [4] 	|
+| Serial number                                                           	| Allows for traceability                                  	| 12 byte UID                                        	|
+| Firmware revision                                                       	| Coordinate with test interface                           	| Hash of the binary to keep unique to code          	|         	|
+
+
+_[1] must have RC filter_  
+_[2] may share pins with CAN bus_  
+_[3] requires special hardware_  
+_[4] UART1 contains ROM bootloader_  
+_[5] only works up to 3.3V_
+
 
 # Future Considerations
 - CANBus support
 - Master mode of periph support
 - Multi master I2C
 
-# Implementation
-- The board will be based off of a bare metal implementation on a blue pill STM32 board
-- The slave board will act as a slave device with a register list similar to sensors such as the bme280 or lis3dh
-- Control of the slave device can be done with a combination of GPIO (initially) and SPI
-- 1 SPI slave mode for testing that has configurable "mode"
-- 1 I2C bus with various addresses and pullup settings
-- 1 UART with variable baud, parity, stop, modem Control
-- 2 ADC from 0 to 3.3v reading at 96kHz sample
-- Use 96 bit UID for SN
-- 1 PWM output, configurable period, duty cycle, ramp mode, default 10 kHz 50%
-- 1 capture pin that can read high time, low time, period
-- 1 input pin that must be toggled?
-- Control from UART that is static (baud etc. cannot change)
+# FAQs
+### Why not use a tool (like buspirate) that does this already?
+- Standard test tools from DIOLAN and Total Phase require licenses and are expensive
+- Most tools don't achieve everything needed, that is why it would be good to customize firmware
+
+### Why not just test against sensors?
+- Sensors and other slave devices cannot test all configurable modes (try to find a SPI MODE 3 or 4 device)
+
+### Why not use a Raspberry Pi?
+- RPi does not support low level testing
+- RPi's drivers are not well certified
+
+### Why not use Arduino?
+- Standard Arduino extensions don't support all configurable features well
+- Arduino hardware doesn't support everything
+
+### Why not implement in RIOT or any other OS?
+- RIOT OS doesn't support many slave features
+- If the device is using RIOT then it shouldn't be tested on RIOT, it should be tested against an accepted reference
+
+### Are the peripheral pins static or reassignable?
+- Pins are static, this makes them simple to wire and simple to develop
+
+### Why program for only one board and not make it usable on other boards?
+- Lots of code takes advantage of hardware specific features
+- Certification becomes simpler, only need to certify one boards
+- Documentation and wiring become simpler
+- The board should be easy to obtain so it is not necessary to depend on boards that are lying around
+
+### What happens if the bluepill board become obsolete?
+- This can happen to any board
+- The bluepill board is very simple to recreate (mcu, crystals, button, leds, connectors)
+- The nucleo-f103rb can also be used with a change in pinout if usb is not used
+
+### Why program the BPT bare metal (or using STMCube)?
+- STMCube provides a standard reference to start so boilerplate code doesn't need to be implemented, tested, and debugged
+- Bare metal is used since the application features are generally simple and an RTOS is not needed
+- If alterations are made in the future it is not necessary to update or bring in a new RTOS
+
+# Shell Communication Protocol
+## Introduction
+The BPT will have a register based protocol, see [memory map](bpt_mem_map.csv) for information on the registers.  All interfaces (UART, USB, I2C, SPI) will access the registers (with different access levels).
+
+## Shell Interface Description
+The shell interface can be accessed either through UART1 or the devices USB, both have the same protocol.
+
+### Shell Commands
+| Command 	| Arguments                                                  	| Response                                            	| Description                                                                                                          	|
+|---------	|------------------------------------------------------------	|-----------------------------------------------------	|----------------------------------------------------------------------------------------------------------------------	|
+| rr      	| [REGISTER_INDEX] [SIZE]                                    	| [errno], 0x[BYTE n][BYTE n-1]...[BYTE 1][BYTE 0]    	| Read the memory map register                                                                                         	|
+| wr      	| [REGISTER_INDEX] [BYTE 0] [BYTE 1] ... [BYTE n-1] [BYTE n] 	| [errno]                                             	| Write to the memory map register (only fills the register, does not change configurations)                           	|
+| ex      	|                                                            	| [errno]                                             	| Executes configuration changes (ie. if i2c slave address is changed it will reinitialize with the new slave address) 	|
+| mcu_rst 	|                                                            	| [errno], Initialized, Build Date: [BUILD DATE TIME] 	| Execute a soft reset of the device                                                                                   	|
+
+
+# Development Phases
+## Phase A (Initial implementation with I2C)
+- Basic UART IF Protocol
+- I2C slave mode with configuration
+- First prototype of code generators for memory map management
+- First prototype of python IFs for the bpt
+- First prototype of RIOT i2c_periph tests
+- Basic support of FW and SN
+- Basic support of flashing LED0
+- Example test of how to use the interfaces
+
+## Phase B (Add DUT_UART functionality)
+- UART IF and USB IF function and are standardized
+- DUT_UART implemented
+- Code generator standardized and tested
+- Standardized python IF to BPT, periph_i2c, periph_uart
+- Basic qualification test for BPT firmware
+- Usable UART test
+
+## Phase C (Add remaining peripherals)
+- TBD
+
 
 # Target Tests to Run
+Test should both test that certain conditions pass (eg. i2c_read_bytes actually reads the correct bytes) and the expected failures occur (eg. reading from a wrong i2c address should return the proper error code and not return a success)
 ## SPI Test
 ### Pass Cases
 - write to dummy register
 - read from dummy register
 - ensure a change has occurred
-- Change to all 4 modes
+- change to all 4 modes
 - 8/16 bit frame
-- Speeds
-- Stress test
-- Send different dummy data
+- speeds
+- stress test
+- send different dummy data
 ### Failure Cases
-- Incorrect mode settings
-- Incorrect pin configs
-- Unsupported Speeds
-- Frame errors
+- incorrect mode settings
+- incorrect pin configs
+- unsupported Speeds
+- frame errors
 
 ## I2C
 ### Pass Cases
-- Check if slave present
+- check if slave present
 - write register
 - read register
 - change slave address
@@ -75,14 +156,14 @@ To have a low cost, certified slave device that can be used to automate regressi
 ### Failure Cases
 - unterminated session
 - wrong slave address
-- Incorrect pin configs
-- Unsupported Speeds
+- incorrect pin configs
+- unsupported Speeds
 - no pullup resistor
 
 ## UART
 ### Pass Cases
-- Basic comms
-- Modem support
+- basic comms
+- modem support
 - change baudrate
 - parity
 - stop bit
@@ -93,9 +174,9 @@ To have a low cost, certified slave device that can be used to automate regressi
 - autobaud?
 
 ### Failure Cases
-- Wrong baudrate
+- wrong baudrate
 - wrong configs
-- Incorrect pin configs
+- incorrect pin configs
 
 ## ADC
 ### Pass Cases
@@ -103,31 +184,17 @@ To have a low cost, certified slave device that can be used to automate regressi
 - speeds
 
 ### Failure Cases
-- Incorrect pin configs
-- Unsupported Speeds
+- incorrect pin configs
+- unsupported speeds
 
 ## PWM
 ### Pass Cases
-- Change duty cycle
-- Change period
+- change duty cycle
+- change period
 - min/max bounds
 - disable/enable
-- Timing test
-
-### Failure Cases
-- ?
+- timing test
 
 ## DAC
 ### Pass Cases
 - Linearity
-
-### Failure Cases
-- ?
-
-# Protocol Definition
-Register Based, up to 256 registers but not more.  UART will be the primary interface.  It will support basic commands like read and writing register, execute changes, and reset.
-
-## I2C comms
-Default slave addr is 0x55, can be changed to 0 to 0x7F minus reserved addr
-LSb indicates R/W, read is 1, write is 0
-Enable/disable slave clock stretching
