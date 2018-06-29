@@ -62,8 +62,10 @@ _[5] only works up to 3.3V_
 - Arduino hardware doesn't support everything
 
 ### Why not implement in RIOT or any other OS?
-- RIOT OS doesn't support many slave features
 - If the device is using RIOT then it shouldn't be tested on RIOT, it should be tested against an accepted reference
+- The tester should be minimal to not introduce unnecessary overhead
+- RIOT doesn't support many slave features
+
 
 ### Are the peripheral pins static or reassignable?
 - Pins are static, this makes them simple to wire and simple to develop
