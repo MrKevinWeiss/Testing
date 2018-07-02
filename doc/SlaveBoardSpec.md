@@ -86,6 +86,8 @@ _[5] only works up to 3.3V_
 - Bare metal is used since the application features are generally simple and an RTOS is not needed
 - If alterations are made in the future it is not necessary to update or bring in a new RTOS
 
+### How dependant is the bpt on the library (STMCube and CMSIS)?
+
 # Shell Communication Protocol
 ## Introduction
 The BPT will have a register based protocol, see [memory map](bpt_mem_map.csv) for information on the registers.  All interfaces (UART, USB, I2C, SPI) will access the registers (with different access levels).
