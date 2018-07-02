@@ -17,7 +17,7 @@ The purpose of this specification is to identify an easily acquirable or reprodu
 |                               Requirement                               	| Reason                                                   	| Implementation                                     	|
 |:-----------------------------------------------------------------------:	|----------------------------------------------------------	|----------------------------------------------------	|
 | 3.3V core voltage, 5V tolerant pins                                     	| Some boards that must be tested are either 3.3V or 5V    	| All pins DUT pins but ADC                          	|
-| Reasonably low cost (2 to 15 USD)                                       	| Allows for scalablility and makes it accessable to users 	| 2.36 USD on Ebay, [bluepill](http://wiki.stm32duino.com/index.php?title=Blue_Pill) with a STM32F103C8 MCU                                   	|
+| Reasonably low cost (2 to 15 USD)                                       	| Allows for scalability and makes it accessible to users 	| 2.36 USD on Ebay, [bluepill](http://wiki.stm32duino.com/index.php?title=Blue_Pill) with a STM32F103C8 MCU                                   	|
 | GPIO output for reset of DUT                                            	| Prevent hanging and get DUT to known state               	| (PB12) DUT_RST                                     	|
 | UART with modem support                                                 	| Test DUT UART features                                   	| (UART3) DUT_CTS, DUT_RTS, DUT_RX, DUT_TX           	|
 | Frequency measurement (input capture)                                   	| Test if DUT clocks/timers/pwm is correct                 	| (T1C1) DUT_IC                                      	|
@@ -44,6 +44,7 @@ _[5] only works up to 3.3V_
 - CANBus support
 - Master mode of periph support
 - Multi master I2C
+- Port to RIOT
 
 # FAQs
 ### Why not use a tool (like buspirate) that does this already?
@@ -66,7 +67,6 @@ _[5] only works up to 3.3V_
 - The tester should be minimal to not introduce unnecessary overhead
 - RIOT doesn't support many slave features
 
-
 ### Are the peripheral pins static or reassignable?
 - Pins are static, this makes them simple to wire and simple to develop
 
@@ -87,6 +87,13 @@ _[5] only works up to 3.3V_
 - If alterations are made in the future it is not necessary to update or bring in a new RTOS
 
 ### How dependant is the bpt on the library (STMCube and CMSIS)?
+- ...Very, many features use the HAL of the STMCube, this allows for quicker development time
+- Application code will try to remain modular allowing for porting
+- Since the HAL is used for much of the development, porting to other boards that support it should be quick (ie STM based boards)
+
+### What are the final thoughts
+- The most efficient way to assist RIOT is to quickly deploy a usable system, so far this is the best/fastest/most reliable way to do so
+- Additional support for slave peripherals can be added after knowledge is gained from the baremetal development
 
 # Shell Communication Protocol
 ## Introduction
@@ -102,7 +109,6 @@ The shell interface can be accessed either through UART1 or the devices USB, bot
 | wr      	| [REGISTER_INDEX] [BYTE 0] [BYTE 1] ... [BYTE n-1] [BYTE n] 	| [errno]                                             	| Write to the memory map register (only fills the register, does not change configurations)                           	|
 | ex      	|                                                            	| [errno]                                             	| Executes configuration changes (ie. if i2c slave address is changed it will reinitialize with the new slave address) 	|
 | mcu_rst 	|                                                            	| [errno], Initialized, Build Date: [BUILD DATE TIME] 	| Execute a soft reset of the device                                                                                   	|
-
 
 # Development Phases
 ## Phase A (Initial implementation with I2C)
@@ -126,7 +132,6 @@ The shell interface can be accessed either through UART1 or the devices USB, bot
 ## Phase C (Add remaining peripherals)
 - TBD
 
-
 # Target Tests to Run
 Test should both test that certain conditions pass (eg. i2c_read_bytes actually reads the correct bytes) and the expected failures occur (eg. reading from a wrong i2c address should return the proper error code and not return a success)
 ## SPI Test
@@ -142,7 +147,7 @@ Test should both test that certain conditions pass (eg. i2c_read_bytes actually 
 ### Failure Cases
 - incorrect mode settings
 - incorrect pin configs
-- unsupported Speeds
+- unsupported speeds
 - frame errors
 
 ## I2C
@@ -156,13 +161,15 @@ Test should both test that certain conditions pass (eg. i2c_read_bytes actually 
 - speeds
 - stress tests
 - 10 bit and 7 bit addr
+- 8/16 bit registers
 
 ### Failure Cases
 - unterminated session
 - wrong slave address
 - incorrect pin configs
-- unsupported Speeds
+- unsupported speeds
 - no pullup resistor
+- double acquire
 
 ## UART
 ### Pass Cases
@@ -175,7 +182,6 @@ Test should both test that certain conditions pass (eg. i2c_read_bytes actually 
 - echo data
 - change data
 - ack data
-- autobaud?
 
 ### Failure Cases
 - wrong baudrate
@@ -201,4 +207,8 @@ Test should both test that certain conditions pass (eg. i2c_read_bytes actually 
 
 ## DAC
 ### Pass Cases
-- Linearity
+- linearity
+
+## Timers
+### Pass Cases
+- time output clock is correct
