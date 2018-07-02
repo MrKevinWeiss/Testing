@@ -94,6 +94,9 @@ error_t app_uart_init(UART_HandleTypeDef *huart) {
 error_t app_uart_execute(uart_t *uart) {
 	huart_inst->Init.BaudRate = uart->baud;
 	mode = uart->mode;
+	DIS_INT;
+	HAL_UART_Init(huart_inst);
+	EN_INT;
 	return EOK;
 }
 
