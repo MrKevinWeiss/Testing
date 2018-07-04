@@ -45,7 +45,7 @@
 #include "app_common.h"
 #include "app.h"
 #include "app_debug.h"
-#include "serial_com.h"
+#include "app_shell_if.h"
 
 /* Defines -------------------------------------------------------------------*/
 #define COM_BUF_SIZE	((uint16_t)1024)//((uint16_t)256)
