@@ -190,11 +190,17 @@ class BptIf(base_if.BaseIf):
     def set_uart_size(self, data=0):
         return self.write_bytes(72, data, 1)
 
-    def get_uart_res7(self):
-        return self.read_bytes(73, 7)
+    def get_uart_ctrl(self, data=0):
+        return self.read_bytes(73, 1)
 
-    def set_uart_res7(self, data=0):
-        return self.write_bytes(73, data, 7)
+    def set_uart_ctrl(self, data=0):
+        return self.write_bytes(73, data, 1)
+
+    def get_uart_res6(self):
+        return self.read_bytes(74, 6)
+
+    def set_uart_res6(self, data=0):
+        return self.write_bytes(74, data, 6)
 
     def get_rtc_second(self):
         return self.read_bytes(80, 1)
@@ -438,8 +444,10 @@ class BptIf(base_if.BaseIf):
         cmds.append(self.get_uart_reg_output)
         cmds.append(self.set_uart_size)
         cmds.append(self.get_uart_size)
-        cmds.append(self.set_uart_res7)
-        cmds.append(self.get_uart_res7)
+        cmds.append(self.set_uart_ctrl)
+        cmds.append(self.get_uart_ctrl)
+        cmds.append(self.set_uart_res6)
+        cmds.append(self.get_uart_res6)
         cmds.append(self.set_rtc_second)
         cmds.append(self.get_rtc_second)
         cmds.append(self.set_rtc_minute)

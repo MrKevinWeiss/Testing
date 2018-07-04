@@ -54,7 +54,7 @@
 #include "app_typedef.h"
 #include "app_common.h"
 
-#include "serial_com.h"
+#include "app_shell_if.h"
 #include "app_uart.h"
 #include "app_i2c.h"
 #include "app.h"

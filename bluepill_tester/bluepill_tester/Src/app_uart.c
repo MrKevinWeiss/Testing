@@ -92,8 +92,25 @@ error_t app_uart_init(UART_HandleTypeDef *huart) {
  * @retval errno defined error code.
  */
 error_t app_uart_execute(uart_t *uart) {
-	huart_inst->Init.BaudRate = uart->baud;
 	mode = uart->mode;
+
+	huart_inst->Init.BaudRate = uart->baud;
+	huart_inst->Init.StopBits = uart->uart_ctrl.stop_bits ? UART_STOPBITS_2 : UART_STOPBITS_1;
+	switch (uart->uart_ctrl.parity) {
+	case BPT_PARITY_NONE:
+		huart_inst->Init.Parity = UART_PARITY_NONE;
+		huart_inst->Init.WordLength = UART_WORDLENGTH_8B;
+		break;
+	case BPT_PARITY_EVEN:
+		huart_inst->Init.Parity = UART_PARITY_EVEN;
+		huart_inst->Init.WordLength = UART_WORDLENGTH_9B;
+		break;
+	case BPT_PARITY_ODD:
+		huart_inst->Init.Parity = UART_PARITY_ODD;
+		huart_inst->Init.WordLength = UART_WORDLENGTH_9B;
+		break;
+	}
+
 	DIS_INT;
 	HAL_UART_Init(huart_inst);
 	EN_INT;

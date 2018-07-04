@@ -14,6 +14,10 @@
 #define MODE_ECHO_EXT	0x01
 #define MODE_REG		0x02
 
+#define BPT_PARITY_NONE	0x00
+#define BPT_PARITY_EVEN	0x01
+#define BPT_PARITY_ODD	0x02
+
 error_t app_uart_execute(uart_t *uart);
 error_t app_uart_init(UART_HandleTypeDef *huart);
 error_t app_uart_poll();

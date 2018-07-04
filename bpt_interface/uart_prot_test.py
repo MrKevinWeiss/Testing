@@ -4,10 +4,18 @@
 
 import logging
 import argparse
+from enum import Enum
 
 import serial
 
 from bpt_if import BptIf
+
+
+class BptUartModes(Enum):
+    '''BPT UART test modes.'''
+    ECHO = 0
+    ECHO_EXT = 1
+    REG_ACCESS = 2
 
 
 class RiotProtocolTest(object):
@@ -71,23 +79,61 @@ class RiotProtocolTest(object):
             self.dev = serial.serial_for_url(
                 dut_port, baudrate=115200, timeout=1)
 
-    def echo_test(self):
-        # set UART mode to echo
-        cmd_info = self.bpt.set_uart_mode()
-        if cmd_info.result != 'Success':
-            logging.error("Failed to set UART mode: {}".format(cmd_info.result))
-            return False
+    def setup_dut_uart(self, baudrate=115200, parity=serial.PARITY_NONE,
+                       stopbits=serial.STOPBITS_ONE):
+        '''Setup DUT UART.'''
+        self.dev.baudrate = baudrate
+        self.dev.parity = parity
+        self.dev.stopbits = stopbits
 
-        cmd_info = self.bpt.set_uart_baud(115200)
+    def setup_bpt(self, mode=BptUartModes.ECHO.value, baudrate=115200,
+                  parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE):
+
+        '''Setup BPT.'''
+        # setup testing mode
+        cmd_info = self.bpt.set_uart_mode(mode)
         if cmd_info.result != 'Success':
             logging.error(
                 "Failed to set UART mode: {}".format(cmd_info.result))
-            return None
+            return False
 
+        # setup baudrate
+        cmd_info = self.bpt.set_uart_baud(baudrate)
+        if cmd_info.result != 'Success':
+            logging.error(
+                "Failed to set UART mode: {}".format(cmd_info.result))
+            return False
+
+        # setup UART control register
+        ctrl = 0
+        if parity == serial.PARITY_EVEN:
+            ctrl = ctrl | 0x02
+        elif parity == serial.PARITY_ODD:
+            ctrl = ctrl | 0x04
+
+        if stopbits == serial.STOPBITS_TWO:
+            ctrl = ctrl | 0x01
+
+        cmd_info = self.bpt.set_uart_ctrl(ctrl)
+        if cmd_info.result != 'Success':
+            logging.error(
+                "Failed to set UART control: {}".format(cmd_info.result))
+            return False
+
+        # apply changes
         cmd_info = self.bpt.execute_changes()
         if cmd_info.result != 'Success':
-            logging.error("Failed to excute changes: {}".format(cmd_info.result))
+            logging.error(
+                "Failed to excute changes: {}".format(cmd_info.result))
             return False
+
+        return True
+
+    def echo_test(self):
+        if not self.setup_bpt():
+            return False
+
+        self.setup_dut_uart()
 
         test_str = b'\x30\x30\x0a'
         try:
@@ -97,7 +143,7 @@ class RiotProtocolTest(object):
             logging.error(err)
             return False
 
-        if len(result) != 3:
+        if len(result) != len(test_str):
             logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
             return False
 
@@ -110,22 +156,10 @@ class RiotProtocolTest(object):
         return True
 
     def echo_test_wrong_baudrate(self):
-        # set UART mode to echo
-        cmd_info = self.bpt.set_uart_mode()
-        if cmd_info.result != 'Success':
-            logging.error("Failed to set UART mode: {}".format(cmd_info.result))
+        if not self.setup_bpt(baudrate=9600):
             return False
 
-        cmd_info = self.bpt.set_uart_baud(9600)
-        if cmd_info.result != 'Success':
-            logging.error(
-                "Failed to set UART mode: {}".format(cmd_info.result))
-            return None
-
-        cmd_info = self.bpt.execute_changes()
-        if cmd_info.result != 'Success':
-            logging.error("Failed to excute changes: {}".format(cmd_info.result))
-            return False
+        self.setup_dut_uart()
 
         test_str = b'\x30\x30\x0a'
         try:
@@ -135,35 +169,23 @@ class RiotProtocolTest(object):
             logging.error(err)
             return False
 
-        if len(result) != 3:
-            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+        if len(result) != len(test_str):
+            logging.debug("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
             return True
 
         if result != test_str:
-            logging.error("Wrong string received")
+            logging.debug("Wrong string received")
             return True
 
         logging.debug('Received string: {}'.format(result))
 
         return False
 
-    def echo_ext_test(self):
-        # set UART mode to echo_ext
-        cmd_info = self.bpt.set_uart_mode(1)
-        if cmd_info.result != 'Success':
-            logging.error("Failed to set UART mode: {}".format(cmd_info.result))
+    def echo_test_even_parity(self):
+        if not self.setup_bpt(parity=serial.PARITY_EVEN):
             return False
 
-        cmd_info = self.bpt.set_uart_baud(115200)
-        if cmd_info.result != 'Success':
-            logging.error(
-                "Failed to set UART mode: {}".format(cmd_info.result))
-            return None
-
-        cmd_info = self.bpt.execute_changes()
-        if cmd_info.result != 'Success':
-            logging.error("Failed to excute changes: {}".format(cmd_info.result))
-            return False
+        self.setup_dut_uart(parity=serial.PARITY_EVEN)
 
         test_str = b'\x30\x30\x0a'
         try:
@@ -173,7 +195,111 @@ class RiotProtocolTest(object):
             logging.error(err)
             return False
 
-        if len(result) != 3:
+        if len(result) != len(test_str):
+            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+            return False
+
+        if result != test_str:
+            logging.error("Wrong string received")
+            return False
+
+        logging.debug('Received string: {}'.format(result))
+
+        return True
+
+    def echo_test_odd_parity(self):
+        if not self.setup_bpt(parity=serial.PARITY_ODD):
+            return False
+
+        self.setup_dut_uart(parity=serial.PARITY_ODD)
+
+        test_str = b'\x30\x30\x0a'
+        try:
+            self.dev.write(test_str)
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err)
+            return False
+
+        if len(result) != len(test_str):
+            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+            return False
+
+        if result != test_str:
+            logging.error("Wrong string received")
+            return False
+
+        logging.debug('Received string: {}'.format(result))
+
+        return True
+
+    def echo_test_wrong_parity(self):
+        if not self.setup_bpt(parity=serial.PARITY_EVEN):
+            return False
+
+        self.setup_dut_uart(parity=serial.PARITY_ODD)
+
+        test_str = b'\x30\x30\x0a'
+        try:
+            self.dev.write(test_str)
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err)
+            return False
+
+        if len(result) != len(test_str):
+            logging.debug("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+            return True
+
+        if result != test_str:
+            logging.debug("Wrong string received")
+            return True
+
+        logging.debug('Received string: {}'.format(result))
+
+        return False
+
+    def echo_test_two_stopbits(self):
+        if not self.setup_bpt(baudrate=600, stopbits=serial.STOPBITS_TWO):
+            return False
+
+        self.setup_dut_uart(baudrate=600, stopbits=serial.STOPBITS_TWO)
+
+        test_str = b'\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x0a'
+        try:
+            self.dev.write(test_str)
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err)
+            return False
+
+        if len(result) != len(test_str):
+            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+            return False
+
+        if result != test_str:
+            logging.error("Wrong string received")
+            return False
+
+        logging.debug('Received string: {}'.format(result))
+
+        return True
+
+    def echo_ext_test(self):
+        if not self.setup_bpt(mode=BptUartModes.ECHO_EXT.value):
+            return False
+
+        self.setup_dut_uart()
+
+        test_str = b'\x30\x30\x0a'
+        try:
+            self.dev.write(test_str)
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err)
+            return False
+
+        if len(result) != len(test_str):
             logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
             return False
 
@@ -185,18 +311,11 @@ class RiotProtocolTest(object):
 
         return True
 
-
     def reg_read_test(self):
-        # set UART mode to echo_ext
-        cmd_info = self.bpt.set_uart_mode(2)
-        if cmd_info.result != 'Success':
-            logging.error("Failed to set UART mode: {}".format(cmd_info.result))
+        if not self.setup_bpt(mode=BptUartModes.REG_ACCESS.value):
             return False
 
-        cmd_info = self.bpt.execute_changes()
-        if cmd_info.result != 'Success':
-            logging.error("Failed to excute changes: {}".format(cmd_info.result))
-            return False
+        self.setup_dut_uart()
 
         test_str = 'rr 152 10\n'
         try:
@@ -240,6 +359,26 @@ def main():
         logging.info("Echo test wrong baudrate: OK")
     else:
         logging.info("Echo test wrong baudrate: failed")
+
+    if test.echo_test_even_parity():
+        logging.info("Echo test with even parity: OK")
+    else:
+        logging.info("Echo test with even parity: failed")
+
+    if test.echo_test_odd_parity():
+        logging.info("Echo test with odd parity: OK")
+    else:
+        logging.info("Echo test with odd parity: failed")
+
+    if test.echo_test_wrong_parity():
+        logging.info("Echo test with wrong parity: OK")
+    else:
+        logging.info("Echo test with wrong parity: failed")
+
+    if test.echo_test_two_stopbits():
+        logging.info("Echo test with two stopbits: OK")
+    else:
+        logging.info("Echo test with two stopbits: failed")
 
     if test.echo_ext_test():
         logging.info("Echo extended test: OK")
