@@ -57,6 +57,7 @@
 #include "app_common.h"
 #include "app_defaults.h"
 
+#include "app_shell_if.h"
 #include "app_uart.h"
 #include "app_i2c.h"
 #include "app.h"

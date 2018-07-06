@@ -44,7 +44,6 @@
 #include "app_errno.h"
 #include "app_common.h"
 #include "app.h"
-
 #include "app_shell_if.h"
 
 /* Defines -------------------------------------------------------------------*/
