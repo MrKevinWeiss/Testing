@@ -35,24 +35,20 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
 #include <string.h>
 
-#include "stm32f1xx_hal.h"
+
 
 #include "app_access.h"
 #include "app_errno.h"
-#include "app_typedef.h"
 #include "app_common.h"
 #include "app.h"
-#include "app_debug.h"
-#include "serial_com.h"
+
+#include "app_shell_if.h"
 
 /* Defines -------------------------------------------------------------------*/
-#define COM_BUF_SIZE	((uint16_t)1024)//((uint16_t)256)
 
-#define RX_END_CHAR		'\n'
-#define TX_END_STR		"\n"
-#define READ_BYTE_CMD	"rb "
 #define READ_REG_CMD	"rr "
 #define WRITE_REG_CMD	"wr "
 #define EXECUTE_CMD		"ex\n"
@@ -62,165 +58,52 @@
 #define ATOU_ERROR		0xFFFFFFFF
 #define BYTE_MAX		((uint8_t)0xFF)
 
-#define IS_RX_WAITING(x)	(HAL_IS_BIT_SET(x, USART_CR3_DMAR))
+
 #define IS_NUM(x)			(x >= '0' && x <= '9')
 
 /* Private function prototypes -----------------------------------------------*/
-static error_t _tx_str(UART_HandleTypeDef *huart, char *str);
-static error_t _rx_str(UART_HandleTypeDef *huart, char *str);
-static error_t _xfer_complete(UART_HandleTypeDef *huart, char *str);
-
-static error_t _parse_command(char *str);
-static error_t _cmd_read_byte(char *str);
-static error_t _cmd_read_reg(char *str);
-static error_t _cmd_write_reg(char *str);
+static error_t _cmd_read_reg(char *str, uint16_t buf_size);
+static error_t _cmd_write_reg(char *str, uint16_t buf_size, uint8_t access);
 static error_t _cmd_execute(char *str);
 static error_t _cmd_reset();
 
-static error_t _valid_args(char *str, uint32_t *arg_count);
+static error_t _valid_args(char *str, uint32_t *arg_count, uint16_t buf_size);
 static uint32_t _fast_atou(char **str, char terminator);
-static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart);
-
-/* Private variables ---------------------------------------------------------*/
-static UART_HandleTypeDef* huart_inst = NULL;
-
-/**
- * @brief Initializes and attaches all the pointers for communication.
- *
- * @retval errno defined error code.
- */
-error_t app_com_init(UART_HandleTypeDef *huart) {
-	char str[COM_BUF_SIZE] = { 0 };
-	sprintf(str, "0, Initialized, Build Date: %s %s\n", __DATE__, __TIME__);
-	error_t err = _tx_str(huart, str);
-	if (err == EOK) {
-		huart_inst = huart;
-	}
-	return err;
-}
-
-/**
- * @brief Polls and parses the rx and tx buffers.
- *
- * @retval errno defined error code.
- */
-error_t app_com_poll() {
-	static char str[COM_BUF_SIZE] = { 0 };
-	error_t err = ENOACTION;
-
-	if (IS_RX_WAITING(huart_inst->Instance->CR3)) {
-		err = _rx_str(huart_inst, str);
-	} else if (huart_inst->TxXferCount == 0) {
-		if (str[COM_BUF_SIZE - 1] != 0) {
-			err = EMSGSIZE;
-			HAL_UART_AbortTransmit(huart_inst);
-			HAL_UART_AbortReceive(huart_inst);
-			memset(str, 0, COM_BUF_SIZE);
-			sprintf(str, "%d%s", err, TX_END_STR);
-			HAL_UART_Transmit_DMA(huart_inst, (uint8_t*) str, strlen(str));
-		} else {
-			err = _xfer_complete(huart_inst, str);
-		}
-	}
-	return err;
-}
 
 /**
  * @brief Private function
  *
  * @retval errno defined error code.
  */
-static error_t _xfer_complete(UART_HandleTypeDef *huart, char *str) {
-	HAL_StatusTypeDef status;
-	error_t err = EUNKNOWN;
+error_t parse_command(char *str, uint16_t buf_size, uint8_t access) {
+	error_t err = EPROTONOSUPPORT;
 
-	memset(str, 0, COM_BUF_SIZE);
-	HAL_UART_AbortTransmit(huart_inst);
-	HAL_UART_AbortReceive(huart_inst);
-	status = HAL_UART_Receive_DMA(huart, (uint8_t*) str, COM_BUF_SIZE);
-	if (status == HAL_BUSY) {
-		err = EBUSY;
-	}
-	if (status == HAL_ERROR) {
-		err = ENXIO;
-	} else if (status == HAL_OK) {
-		err = EOK;
-	}
-	return err;
-}
-
-/**
- * @brief Private function
- *
- * @retval errno defined error code.
- */
-static error_t _rx_str(UART_HandleTypeDef *huart, char *str) {
-	int32_t rx_amount;
-	error_t err = ENOACTION;
-	rx_amount = _get_rx_amount(huart);
-	if (rx_amount >= 1) {
-		if (str[rx_amount - 1] == RX_END_CHAR
-				&& _get_rx_amount(huart) != COM_BUF_SIZE) {
-			HAL_UART_AbortTransmit(huart);
-			HAL_UART_AbortReceive(huart);
-			err = _parse_command(str);
-			if (err == EOK) {
-				HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
-			} else {
-				sprintf(str, "%d%s", err, TX_END_STR);
-				HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
-			}
-		}
-	}
-	return err;
-}
-
-/**
- * @brief Private function
- *
- * @retval errno defined error code.
- */
-static error_t _tx_str(UART_HandleTypeDef *huart, char *str) {
-	error_t err = EUNKNOWN;
-	HAL_StatusTypeDef status = HAL_UART_Transmit_DMA(huart, (uint8_t*) str,
-			strlen(str));
-
-	if (status == HAL_BUSY) {
-		HAL_UART_AbortTransmit(huart);
-		HAL_UART_AbortReceive(huart);
-		status = HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
-		if (status == HAL_BUSY) {
-			err = EBUSY;
-		}
-	}
-	if (status == HAL_ERROR) {
-		err = ENXIO;
-	} else if (status == HAL_OK) {
-		err = EOK;
-	}
-
-	return err;
-}
-
-/**
- * @brief Private function
- *
- * @retval errno defined error code.
- */
-static error_t _parse_command(char *str) {
-	if (memcmp(str, READ_BYTE_CMD, strlen(READ_BYTE_CMD)) == 0) {
-		return _cmd_read_byte(str);
-	} else if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
-		return _cmd_read_reg(str);
+	if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
+		err = _cmd_read_reg(str, buf_size);
 	} else if (memcmp(str, WRITE_REG_CMD, strlen(WRITE_REG_CMD)) == 0) {
-		return _cmd_write_reg(str);
+		err = _cmd_write_reg(str, buf_size, access);
 	} else if (memcmp(str, EXECUTE_CMD, strlen(EXECUTE_CMD)) == 0) {
-		return _cmd_execute(str);
+		if (!(access & IF_ACCESS)) {
+			err = EACCES;
+		} else {
+			err = _cmd_execute(str);
+		}
 	} else if (memcmp(str, RESET_CMD, strlen(RESET_CMD)) == 0) {
-		return _cmd_reset();
+		if (!(access & IF_ACCESS)) {
+			err = EACCES;
+		} else {
+			err = _cmd_reset();
+		}
+	}
+	if (str[buf_size - 1] != 0){
+		err = EMSGSIZE;
 	}
 
-	return EPROTONOSUPPORT;
+	if (err != EOK) {
+		sprintf(str, "%d%s", err, TX_END_STR);
+	}
+
+	return err;
 }
 
 /**
@@ -228,31 +111,7 @@ static error_t _parse_command(char *str) {
  *
  * @retval errno defined error code.
  */
-static error_t _cmd_read_byte(char *str) {
-	char *arg_str = str + strlen(READ_BYTE_CMD);
-	uint32_t index = _fast_atou(&arg_str, RX_END_CHAR);
-
-	if (index == ATOU_ERROR) {
-		return EINVAL;
-	} else if (index >= get_reg_size()) {
-		return EOVERFLOW;
-	} else {
-		uint8_t data;
-		DIS_INT;
-		read_reg(index, &data);
-		EN_INT;
-		sprintf(str, "0,0x%02X%s", data, TX_END_STR);
-		return EOK;
-	}
-	return EUNKNOWN;
-}
-
-/**
- * @brief Private function
- *
- * @retval errno defined error code.
- */
-static error_t _cmd_read_reg(char *str) {
+static error_t _cmd_read_reg(char *str, uint16_t buf_size) {
 	char *first_str = str;
 	char *arg_str = str + strlen(READ_REG_CMD);
 	uint32_t index = _fast_atou(&arg_str, ' ');
@@ -266,7 +125,7 @@ static error_t _cmd_read_reg(char *str) {
 		if (size == ATOU_ERROR) {
 			return EINVAL;
 		} else if ((size * 2) + strlen(TX_END_STR)
-				+ strlen("0,0x") >= COM_BUF_SIZE) {
+				+ strlen("0,0x") >= buf_size) {
 			return ERANGE;
 		} else {
 			uint8_t data;
@@ -286,7 +145,7 @@ static error_t _cmd_read_reg(char *str) {
 				if (index == 0) {
 					index = get_reg_size();
 				}
-				if ((str - first_str) + 2 + strlen(TX_END_STR) < COM_BUF_SIZE) {
+				if ((str - first_str) + 2 + strlen(TX_END_STR) < buf_size) {
 					str += sprintf(str, "%02X", data);
 				} else {
 					return ERANGE;
@@ -304,11 +163,11 @@ static error_t _cmd_read_reg(char *str) {
  *
  * @retval errno defined error code.
  */
-static error_t _cmd_write_reg(char *str) {
+static error_t _cmd_write_reg(char *str, uint16_t buf_size, uint8_t access) {
 	uint32_t arg_count = 0;
 	error_t err;
 
-	err = _valid_args(str, &arg_count);
+	err = _valid_args(str, &arg_count, buf_size);
 	if (err == EOK) {
 		if (arg_count < 2) {
 			err = ENODATA;
@@ -323,7 +182,7 @@ static error_t _cmd_write_reg(char *str) {
 				while (arg_count != 1) {
 					val = _fast_atou(&arg_str, ' ');
 					DIS_INT;
-					err = write_reg(index, val, CONFIG_WRITE_ACCESS);
+					err = write_reg(index, val, access);
 					EN_INT;
 					if (err != EOK) {
 						return err;
@@ -336,7 +195,7 @@ static error_t _cmd_write_reg(char *str) {
 				}
 				val = _fast_atou(&arg_str, RX_END_CHAR);
 				DIS_INT;
-				err = write_reg(index, val, CONFIG_WRITE_ACCESS);
+				err = write_reg(index, val, access);
 				EN_INT;
 				if (err == EOK) {
 					sprintf(str, "%d%s", EOK, TX_END_STR);
@@ -353,7 +212,6 @@ static error_t _cmd_write_reg(char *str) {
  * @retval errno defined error code.
  */
 static error_t _cmd_execute(char *str) {
-
 	error_t err = execute_reg_change();
 	if (err == EOK) {
 		sprintf(str, "%d%s", EOK, TX_END_STR);
@@ -366,12 +224,12 @@ static error_t _cmd_execute(char *str) {
  *
  * @retval errno defined error code.
  */
-static error_t _valid_args(char *str, uint32_t *arg_count) {
+static error_t _valid_args(char *str, uint32_t *arg_count, uint16_t buf_size) {
 	char *arg_str = str + strlen(WRITE_REG_CMD);
 	uint32_t val;
 
 	*arg_count = 0;
-	while ((arg_str - str) < COM_BUF_SIZE - strlen(WRITE_REG_CMD)) {
+	while ((arg_str - str) < buf_size - strlen(WRITE_REG_CMD)) {
 		char *end_check_str = arg_str;
 		val = _fast_atou(&end_check_str, ' ');
 		if (val == ATOU_ERROR) {
@@ -444,20 +302,4 @@ uint32_t _fast_atou(char **str, char terminator) {
 	}
 	(*str)++;
 	return val;
-}
-
-/**
- * @brief Private function
- *
- * @retval errno defined error code.
- */
-static inline int32_t _get_rx_amount(UART_HandleTypeDef *huart) {
-	return (COM_BUF_SIZE - huart->hdmarx->Instance->CNDTR);
-}
-
-void debug_print(char *str) {
-#ifdef DEBUG_PRINT
-	HAL_UART_AbortTransmit(huart_inst);
-	HAL_UART_Transmit_DMA(huart_inst, (uint8_t*) str, strlen(str));
-#endif
 }
