@@ -32,26 +32,22 @@
  * to registers.  It used the STM HAL and a UART for the IO.  It also uses DMA.
  */
 
-#ifndef SERIAL_COM_H_
-#define SERIAL_COM_H_
+#ifndef APP_SHELL_IF_H_
+#define APP_SHELL_IF_H_
 
 #include <errno.h>
+#include <stdint.h>
 
 /* Defines -------------------------------------------------------------------*/
+#define RX_END_CHAR		'\n'
+#define TX_END_STR		"\n"
 
 /* Public Functions ----------------------------------------------------------*/
 /**
- * @brief Initializes and attaches all the pointers for communication.
+ * @brief Private function
  *
  * @retval errno defined error code.
  */
-error_t app_com_init(UART_HandleTypeDef *huart);
+error_t parse_command(char *str, uint16_t buf_size, uint8_t access);
 
-/**
- * @brief Polls and parses the rx and tx buffers.
- *
- * @retval errno defined error code.
- */
-error_t app_com_poll();
-
-#endif /* SERIAL_COM_H_ */
+#endif /* APP_SHELL_IF_H_ */
