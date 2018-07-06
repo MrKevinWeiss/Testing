@@ -51,13 +51,17 @@
 #include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
+#include "port_uart.h"
+#include "app_access.h"
 #include "app_typedef.h"
 #include "app_common.h"
+#include "app_defaults.h"
 
 #include "app_shell_if.h"
 #include "app_uart.h"
 #include "app_i2c.h"
 #include "app.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -88,6 +92,8 @@ DMA_HandleTypeDef hdma_usart3_tx;
 #define H_DUT_UART	huart3
 #define H_IF_UART	huart1
 #define H_DUT_I2C	hi2c1
+
+#define UART_BUF_SIZE	1024
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,6 +130,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 int main(void) {
 	/* USER CODE BEGIN 1 */
 	int32_t led_tick = 0;
+	char if_uart_buf[UART_BUF_SIZE] = { 0 };
+	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS};
 	/* USER CODE END 1 */
 
 	/* MCU Configuration----------------------------------------------------------*/
@@ -158,8 +166,7 @@ int main(void) {
 	MX_ADC2_Init();
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
-	app_com_init(&H_IF_UART);
-
+	port_uart_init(&uart_if);
 	app_i2c_init(&H_DUT_I2C);
 	app_uart_init(&H_DUT_UART);
 	execute_reg_change();
@@ -169,13 +176,24 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		if (led_tick < HAL_GetTick()) {
-			led_tick = HAL_GetTick() + 250;
+			if ((FW_REV & 0x03) == 0) {
+				led_tick = HAL_GetTick() + 40;
+			}
+			else if ((FW_REV & 0x03) == 1){
+				led_tick = HAL_GetTick() + 200;
+			}
+			else if ((FW_REV & 0x03) == 2){
+				led_tick = HAL_GetTick() + 500;
+			}
+			else if ((FW_REV & 0x03) == 3){
+				led_tick = HAL_GetTick() + 1000;
+			}
 			HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
 		}
 		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
 		}
-		app_com_poll();
-		app_uart_poll();
+		port_uart_poll(&uart_if);
+		//app_uart_poll();
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

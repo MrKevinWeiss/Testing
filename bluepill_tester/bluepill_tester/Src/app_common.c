@@ -32,3 +32,15 @@ void delay_us(uint16_t micros) {
 	freq *= micros;
 	_delay_ticks(freq);
 }
+
+inline void disable_interrupt() {
+	__disable_irq();
+}
+
+inline void enable_interrupt() {
+	__enable_irq();
+}
+
+inline void soft_reset() {
+	NVIC_SystemReset();
+}

@@ -208,7 +208,7 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 			reg_index = start_reg_index;
 		} else {
 			uint8_t data = hi2c->Instance->DR;
-			write_reg(reg_index, data, USER_WRITE_ACCESS);
+			write_reg(reg_index, data, PERIPH_ACCESS);
 			_add_index(&reg_index);
 		}
 	} else if (((sr1itflags & I2C_FLAG_BTF) != RESET)
@@ -219,7 +219,7 @@ void i2c_it(I2C_HandleTypeDef* hi2c) {
 			reg_index = start_reg_index;
 		} else {
 			uint8_t data = hi2c->Instance->DR;
-			write_reg(reg_index, data, USER_WRITE_ACCESS);
+			write_reg(reg_index, data, PERIPH_ACCESS);
 			_add_index(&reg_index);
 		}
 	}
