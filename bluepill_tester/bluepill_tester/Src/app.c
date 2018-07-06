@@ -50,6 +50,8 @@ error_t _init_reg(map_t *reg_to_init) {
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
 	reg_to_init->uart.baud = DEFAULT_UART_BAUDRATE;
+	reg_to_init->uart.uart_ctrl.parity = DEFAULT_UART_PARITY;
+	reg_to_init->uart.uart_ctrl.stop_bits = DEFAULT_UART_STOP_BITS;
 
 	for (int i = 0; i < sizeof(reg_to_init->res); i++) {
 		reg_to_init->res[i] = (uint8_t) i;

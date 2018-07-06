@@ -105,21 +105,29 @@ typedef union spi_t_TAG {
 	uint8_t data8[16];
 } spi_t;
 
+typedef struct uart_ctrl_t_TAG {
+	/* Specific modes for UART */
+	uint8_t stop_bits :1;
+	uint8_t parity :2;
+} uart_ctrl_t;
+
 /*  */
 typedef union uart_t_TAG {
 	struct {
-		/*  */
+		/* Test mode */
 		uint8_t mode;
 		/*  */
 		uint16_t error_code;
-		/*  */
+		/* Baudrate */
 		uint32_t baud;
 		/*  */
 		uint8_t reg_output;
 		/*  */
 		uint8_t size;
+		/* UART control register*/
+		uart_ctrl_t uart_ctrl;
 		/* reserve bytes */
-		uint8_t res[7];
+		uint8_t res[6];
 	};
 	uint8_t data8[16];
 } uart_t;

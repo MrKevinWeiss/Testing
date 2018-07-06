@@ -61,6 +61,7 @@
 #include "app_uart.h"
 #include "app_i2c.h"
 #include "app.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
