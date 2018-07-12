@@ -31,7 +31,7 @@ def __get_setter(record):
 
 def get_if(map, name):
     str = "import base_if\n\n\n"
-    str += "class %s(base_if.BaseIf)\n\n" % name
+    str += "class %s(base_if.BaseIf):\n\n" % name
 
     for record in map:
         str += __get_getter(record)
@@ -301,7 +301,7 @@ str += "/* total size %d */\n" % size
 f.write(str)
 f.close()
 
-str = get_if(mem_map, "bpt_if")
+str = get_if(mem_map, "BptIf")
 f = open(("bpt_if.py"), 'w')
 f.write(str)
 f.close()

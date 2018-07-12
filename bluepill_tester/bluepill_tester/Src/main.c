@@ -60,8 +60,8 @@
 #include "usbd_cdc.h"
 
 #include "app_shell_if.h"
-#include "app_uart.h"
 #include "app_i2c.h"
+#include "port_dut_uart.h"
 #include "app.h"
 
 /* USER CODE END Includes */
@@ -132,12 +132,13 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 int main(void) {
 	/* USER CODE BEGIN 1 */
 	int32_t led_tick = 0;
+  char dut_uart_buf[UART_BUF_SIZE] = { 0 };
 	char if_uart_buf[UART_BUF_SIZE] = { 0 };
 	char if_usb_buf[UART_BUF_SIZE] = { 0 };
 
-	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS};
 	PORT_USB_t usb_if = {.str = if_usb_buf, .size = sizeof(if_usb_buf), .access = IF_ACCESS, .index = 0};
-
+	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS, .mode = MODE_REG};
+	PORT_UART_t uart_dut = {.huart = &H_DUT_UART, .str = dut_uart_buf, .size = sizeof(dut_uart_buf), .access = PERIPH_ACCESS, .mode = MODE_ECHO};
 	/* USER CODE END 1 */
 
 	/* MCU Configuration----------------------------------------------------------*/
@@ -173,8 +174,8 @@ int main(void) {
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 	port_uart_init(&uart_if);
+	uart_dut_init(&uart_dut);
 	app_i2c_init(&H_DUT_I2C);
-	app_uart_init(&H_DUT_UART);
 	execute_reg_change();
 	/* USER CODE END 2 */
 
@@ -200,7 +201,7 @@ int main(void) {
 		}
 		port_usb_poll(&usb_if);
 		port_uart_poll(&uart_if);
-		//app_uart_poll();
+		port_uart_poll(&uart_dut);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

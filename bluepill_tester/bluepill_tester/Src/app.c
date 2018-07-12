@@ -18,7 +18,7 @@
 #include "build_defs.h"
 #include "app_defaults.h"
 #include "app_i2c.h"
-#include "app_uart.h"
+#include "port_dut_uart.h"
 #include "app.h"
 
 static map_t reg = { 0 };
@@ -50,8 +50,8 @@ error_t _init_reg(map_t *reg_to_init) {
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
 	reg_to_init->uart.baud = DEFAULT_UART_BAUDRATE;
-	reg_to_init->uart.uart_ctrl.parity = DEFAULT_UART_PARITY;
-	reg_to_init->uart.uart_ctrl.stop_bits = DEFAULT_UART_STOP_BITS;
+	reg_to_init->uart.ctrl.parity = DEFAULT_UART_PARITY;
+	reg_to_init->uart.ctrl.stop_bits = DEFAULT_UART_STOP_BITS;
 
 	for (int i = 0; i < sizeof(reg_to_init->res); i++) {
 		reg_to_init->res[i] = (uint8_t) i;
@@ -86,7 +86,7 @@ error_t execute_reg_change() {
 	}
 
 	if (memcmp(&prev_reg.uart, &reg.uart, sizeof(reg.uart))) {
-		app_uart_execute(&reg.uart);
+		uart_dut_execute(&reg.uart);
 	}
 
 	memcpy(&prev_reg, &reg, sizeof(reg));
