@@ -185,7 +185,7 @@
         {
           "name" : "mode",
           "type" : "uint8_t",
-          "description" : ""
+          "description" : "Test mode"
         },
         {
           "name" : "error_code",
@@ -195,7 +195,7 @@
         {
           "name" : "baud",
           "type" : "uint32_t",
-          "description" : ""
+          "description" : "Baudrate"
         },
         {
           "name" : "reg_output",
@@ -206,6 +206,24 @@
           "name" : "size",
           "type" : "uint8_t",
           "description" : ""
+        },
+        {
+          "name" : "ctrl",
+          "bit_type" : "uint8_t",
+          "type" : "uart_ctrl_t",
+          "bitfield" : [
+          {
+            "name" : "stop_bits",
+            "bits" : 1,
+            "description" : "Number of stop bits"
+          },
+          {
+            "name" : "parity",
+            "bits" : 2,
+            "description" : "Parity"
+          }
+          ],
+          "description" : "UART control register"
         }
       ]
     },

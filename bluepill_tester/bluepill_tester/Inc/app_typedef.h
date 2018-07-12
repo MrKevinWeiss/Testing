@@ -2,7 +2,7 @@
  * Filename: bpt_mem_map.h
  * Author: Kevin Weiss
  * Revision: 1.00.00
- */
+*/
 
 #ifndef BPT_MEM_MAP_H_
 #define BPT_MEM_MAP_H_
@@ -36,7 +36,7 @@ typedef union timestamp_t_TAG {
 /* Specific modes for I2C */
 typedef struct sys_cr_t_TAG {
 	/* Specific modes for I2C */
-	uint8_t dut_rst :1;
+	uint8_t dut_rst : 1;
 } sys_cr_t;
 /* System settings for the bpt */
 typedef union sys_t_TAG {
@@ -60,15 +60,15 @@ typedef union sys_t_TAG {
 /* Specific modes for I2C */
 typedef struct i2c_mode_t_TAG {
 	/* Specific modes for I2C */
-	uint8_t addr_10_bit :1;
+	uint8_t addr_10_bit : 1;
 	/* Specific modes for I2C */
-	uint8_t general_call :1;
+	uint8_t general_call : 1;
 	/* Specific modes for I2C */
-	uint8_t no_clk_stretch :1;
+	uint8_t no_clk_stretch : 1;
 	/* Specific modes for I2C */
-	uint8_t reg_16_bit :1;
+	uint8_t reg_16_bit : 1;
 	/* Specific modes for I2C */
-	uint8_t disable :1;
+	uint8_t disable : 1;
 } i2c_mode_t;
 /* System settings for the bpt */
 typedef union i2c_t_TAG {
@@ -105,12 +105,13 @@ typedef union spi_t_TAG {
 	uint8_t data8[16];
 } spi_t;
 
+/* UART control register */
 typedef struct uart_ctrl_t_TAG {
-	/* Specific modes for UART */
-	uint8_t stop_bits :1;
-	uint8_t parity :2;
+	/* UART control register */
+	uint8_t stop_bits : 1;
+	/* UART control register */
+	uint8_t parity : 2;
 } uart_ctrl_t;
-
 /*  */
 typedef union uart_t_TAG {
 	struct {
@@ -124,8 +125,8 @@ typedef union uart_t_TAG {
 		uint8_t reg_output;
 		/*  */
 		uint8_t size;
-		/* UART control register*/
-		uart_ctrl_t uart_ctrl;
+		/* UART control register */
+		uart_ctrl_t ctrl;
 		/* reserve bytes */
 		uint8_t res[6];
 	};
