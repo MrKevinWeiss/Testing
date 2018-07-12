@@ -38,8 +38,7 @@ static inline int32_t _get_rx_amount(PORT_UART_t *port_uart);
  */
 error_t port_uart_init(PORT_UART_t *port_uart) {
 	sprintf(port_uart->str, "0, Initialized, Build Date: %s %s\n", __DATE__, __TIME__);
-	error_t err = _tx_str(port_uart);
-	return err;
+	return _tx_str(port_uart);
 }
 
 /**
@@ -114,7 +113,7 @@ static error_t _rx_str(PORT_UART_t *port_uart) {
 				&& _get_rx_amount(port_uart) != port_uart->size) {
 			HAL_UART_AbortTransmit(huart);
 			HAL_UART_AbortReceive(huart);
-			err = parse_command(str, port_uart->size, port_uart->access);
+			err = parse_input(port_uart->mode, str, port_uart->size, port_uart->access);
 			HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
 		}
 	}

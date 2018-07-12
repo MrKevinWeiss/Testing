@@ -42,12 +42,16 @@
 #define RX_END_CHAR		'\n'
 #define TX_END_STR		"\n"
 
+#define MODE_ECHO		0x00
+#define MODE_ECHO_EXT	0x01
+#define MODE_REG		0x02
+
 /* Public Functions ----------------------------------------------------------*/
 /**
  * @brief Private function
  *
  * @retval errno defined error code.
  */
-error_t parse_command(char *str, uint16_t buf_size, uint8_t access);
+error_t parse_input(uint8_t mode, char *str, uint16_t buf_size, uint8_t access);
 
 #endif /* APP_SHELL_IF_H_ */

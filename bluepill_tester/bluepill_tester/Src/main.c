@@ -58,8 +58,8 @@
 #include "app_defaults.h"
 
 #include "app_shell_if.h"
-#include "app_uart.h"
 #include "app_i2c.h"
+#include "port_dut_uart.h"
 #include "app.h"
 
 /* USER CODE END Includes */
@@ -131,7 +131,8 @@ int main(void) {
 	/* USER CODE BEGIN 1 */
 	int32_t led_tick = 0;
 	char if_uart_buf[UART_BUF_SIZE] = { 0 };
-	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS};
+	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS, .mode = MODE_REG};
+	PORT_UART_t uart_dut = {.huart = &H_DUT_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = PERIPH_ACCESS, .mode = MODE_ECHO};
 	/* USER CODE END 1 */
 
 	/* MCU Configuration----------------------------------------------------------*/
@@ -167,8 +168,8 @@ int main(void) {
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 	port_uart_init(&uart_if);
+	uart_dut_init(&uart_dut);
 	app_i2c_init(&H_DUT_I2C);
-	app_uart_init(&H_DUT_UART);
 	execute_reg_change();
 	/* USER CODE END 2 */
 
@@ -193,7 +194,7 @@ int main(void) {
 		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
 		}
 		port_uart_poll(&uart_if);
-		//app_uart_poll();
+		port_uart_poll(&uart_dut);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

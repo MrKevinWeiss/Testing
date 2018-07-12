@@ -61,6 +61,7 @@
 #define IS_NUM(x)			(x >= '0' && x <= '9')
 
 /* Private function prototypes -----------------------------------------------*/
+static error_t parse_command(char *str, uint16_t buf_size, uint8_t access);
 static error_t _cmd_read_reg(char *str, uint16_t buf_size);
 static error_t _cmd_write_reg(char *str, uint16_t buf_size, uint8_t access);
 static error_t _cmd_execute(char *str);
@@ -74,7 +75,28 @@ static uint32_t _fast_atou(char **str, char terminator);
  *
  * @retval errno defined error code.
  */
-error_t parse_command(char *str, uint16_t buf_size, uint8_t access) {
+error_t parse_input(uint8_t mode, char *str, uint16_t buf_size, uint8_t access) {
+	int i;
+	switch(mode) {
+	case MODE_ECHO:
+		return EOK;
+	case MODE_ECHO_EXT:
+		for (i = 0; i < strlen(str) - 1; i++) {
+			str[i]++;
+		}
+		return EOK;
+	case MODE_REG:
+		return parse_command(str, buf_size, access);
+	}
+	return EPROTONOSUPPORT;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static error_t parse_command(char *str, uint16_t buf_size, uint8_t access) {
 	error_t err = EPROTONOSUPPORT;
 
 	if (memcmp(str, READ_REG_CMD, strlen(READ_REG_CMD)) == 0) {
