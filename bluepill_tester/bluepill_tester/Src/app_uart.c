@@ -95,8 +95,8 @@ error_t app_uart_execute(uart_t *uart) {
 	mode = uart->mode;
 
 	huart_inst->Init.BaudRate = uart->baud;
-	huart_inst->Init.StopBits = uart->uart_ctrl.stop_bits ? UART_STOPBITS_2 : UART_STOPBITS_1;
-	switch (uart->uart_ctrl.parity) {
+	huart_inst->Init.StopBits = uart->ctrl.stop_bits ? UART_STOPBITS_2 : UART_STOPBITS_1;
+	switch (uart->ctrl.parity) {
 	case BPT_PARITY_NONE:
 		huart_inst->Init.Parity = UART_PARITY_NONE;
 		huart_inst->Init.WordLength = UART_WORDLENGTH_8B;
