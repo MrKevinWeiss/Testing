@@ -51,11 +51,13 @@
 #include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
+#include "port_usb.h"
 #include "port_uart.h"
 #include "app_access.h"
 #include "app_typedef.h"
 #include "app_common.h"
 #include "app_defaults.h"
+#include "usbd_cdc.h"
 
 #include "app_shell_if.h"
 #include "app_uart.h"
@@ -93,7 +95,7 @@ DMA_HandleTypeDef hdma_usart3_tx;
 #define H_IF_UART	huart1
 #define H_DUT_I2C	hi2c1
 
-#define UART_BUF_SIZE	1024
+#define UART_BUF_SIZE	512
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,7 +133,11 @@ int main(void) {
 	/* USER CODE BEGIN 1 */
 	int32_t led_tick = 0;
 	char if_uart_buf[UART_BUF_SIZE] = { 0 };
+	char if_usb_buf[UART_BUF_SIZE] = { 0 };
+
 	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS};
+	PORT_USB_t usb_if = {.str = if_usb_buf, .size = sizeof(if_usb_buf), .access = IF_ACCESS, .index = 0};
+
 	/* USER CODE END 1 */
 
 	/* MCU Configuration----------------------------------------------------------*/
@@ -192,6 +198,7 @@ int main(void) {
 		}
 		if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
 		}
+		port_usb_poll(&usb_if);
 		port_uart_poll(&uart_if);
 		//app_uart_poll();
 		/* USER CODE END WHILE */
