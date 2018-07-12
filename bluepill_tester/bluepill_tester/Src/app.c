@@ -18,7 +18,7 @@
 #include "build_defs.h"
 #include "app_defaults.h"
 #include "app_i2c.h"
-#include "app_uart.h"
+#include "port_dut_uart.h"
 #include "app.h"
 
 static map_t reg = { 0 };
@@ -86,7 +86,7 @@ error_t execute_reg_change() {
 	}
 
 	if (memcmp(&prev_reg.uart, &reg.uart, sizeof(reg.uart))) {
-		app_uart_execute(&reg.uart);
+		uart_dut_execute(&reg.uart);
 	}
 
 	memcpy(&prev_reg, &reg, sizeof(reg));
