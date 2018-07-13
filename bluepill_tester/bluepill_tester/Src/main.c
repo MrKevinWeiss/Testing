@@ -136,7 +136,7 @@ int main(void) {
 	char if_uart_buf[UART_BUF_SIZE] = { 0 };
 	char if_usb_buf[UART_BUF_SIZE] = { 0 };
 
-	PORT_USB_t usb_if = {.str = if_usb_buf, .size = sizeof(if_usb_buf), .access = IF_ACCESS, .index = 0};
+	PORT_USB_t usb_if = {.str = if_usb_buf, .size = sizeof(if_usb_buf), .access = IF_ACCESS, .index = 0, .mode = MODE_REG};
 	PORT_UART_t uart_if = {.huart = &H_IF_UART, .str = if_uart_buf, .size = sizeof(if_uart_buf), .access = IF_ACCESS, .mode = MODE_REG};
 	PORT_UART_t uart_dut = {.huart = &H_DUT_UART, .str = dut_uart_buf, .size = sizeof(dut_uart_buf), .access = PERIPH_ACCESS, .mode = MODE_ECHO};
 	/* USER CODE END 1 */

@@ -92,7 +92,7 @@ static error_t _rx_str(PORT_USB_t *port_usb) {
 	error_t err = ENOACTION;
 	if (port_usb->index > 0) {
 		if (str[port_usb->index - 1] == RX_END_CHAR) {
-			err = parse_command(str, port_usb->size, port_usb->access);
+			err = parse_input(port_usb->mode, str, port_usb->size, port_usb->access);
 			CDC_Transmit_FS((uint8_t*) str, strlen(str));
 		}
 	}
