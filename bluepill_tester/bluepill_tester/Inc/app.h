@@ -13,7 +13,9 @@
 
 uint32_t get_reg_size();
 error_t read_reg(uint32_t index, uint8_t *data);
+error_t read_regs(uint32_t index, uint8_t *data, uint16_t size);
 error_t write_reg(uint32_t index, uint8_t data, uint8_t access);
+error_t write_regs(uint32_t index, uint8_t *data, uint16_t size, uint8_t access);
 
 error_t execute_reg_change();
 
