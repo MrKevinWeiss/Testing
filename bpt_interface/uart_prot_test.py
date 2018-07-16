@@ -153,6 +153,10 @@ class RiotProtocolTest(object):
 
         logging.debug('Received string: {}'.format(result))
 
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
+
         return True
 
     def echo_test_wrong_baudrate(self):
@@ -205,6 +209,10 @@ class RiotProtocolTest(object):
 
         logging.debug('Received string: {}'.format(result))
 
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
+
         return True
 
     def echo_test_odd_parity(self):
@@ -230,6 +238,10 @@ class RiotProtocolTest(object):
             return False
 
         logging.debug('Received string: {}'.format(result))
+
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
 
         return True
 
@@ -283,6 +295,10 @@ class RiotProtocolTest(object):
 
         logging.debug('Received string: {}'.format(result))
 
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
+
         return True
 
     def echo_ext_test(self):
@@ -309,6 +325,10 @@ class RiotProtocolTest(object):
 
         logging.debug('Received string: {}'.format(result))
 
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
+
         return True
 
     def reg_read_test(self):
@@ -330,6 +350,10 @@ class RiotProtocolTest(object):
             return False
 
         logging.debug('Received string: {}'.format(result))
+
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
 
         return True
 

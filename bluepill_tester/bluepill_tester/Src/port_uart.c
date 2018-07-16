@@ -100,6 +100,41 @@ static error_t _xfer_complete(PORT_UART_t *port_uart) {
  *
  * @retval errno defined error code.
  */
+static error_t _update_tx_count(PORT_UART_t *port_uart, uint16_t tx_amount) {
+	error_t err = EOK;
+	if (port_uart->access == PERIPH_ACCESS) {
+		uint16_t tx_count;
+		read_regs(offsetof(map_t, uart.tx_count), (uint8_t *)&tx_count, sizeof(((uart_t *)0)->tx_count));
+		tx_count += tx_amount;
+		write_regs(offsetof(map_t, uart.tx_count), (uint8_t *)&tx_count,  sizeof(((uart_t *)0)->tx_count), IF_ACCESS);
+	}
+
+	return err;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
+static error_t _update_rx_count(PORT_UART_t *port_uart, uint16_t rx_amount) {
+	error_t err = EOK;
+
+	if (port_uart->access == PERIPH_ACCESS) {
+		uint16_t rx_count;
+		read_regs(offsetof(map_t, uart.rx_count), (uint8_t *)&rx_count, sizeof(((uart_t *)0)->rx_count));
+		rx_count += rx_amount;
+		write_regs(offsetof(map_t, uart.rx_count), (uint8_t *)&rx_count,  sizeof(((uart_t *)0)->rx_count), IF_ACCESS);
+	}
+
+	return err;
+}
+
+/**
+ * @brief Private function
+ *
+ * @retval errno defined error code.
+ */
 static error_t _rx_str(PORT_UART_t *port_uart) {
 	char *str = port_uart->str;
 	UART_HandleTypeDef *huart = port_uart->huart;
@@ -111,10 +146,13 @@ static error_t _rx_str(PORT_UART_t *port_uart) {
 	if (rx_amount >= 1) {
 		if (str[rx_amount - 1] == RX_END_CHAR
 				&& _get_rx_amount(port_uart) != port_uart->size) {
+			_update_rx_count(port_uart, strlen(str));
 			HAL_UART_AbortTransmit(huart);
 			HAL_UART_AbortReceive(huart);
 			err = parse_input(port_uart->mode, str, port_uart->size, port_uart->access);
+			_update_tx_count(port_uart, strlen(str));
 			HAL_UART_Transmit_DMA(huart, (uint8_t*) str, strlen(str));
+
 		}
 	}
 	return err;

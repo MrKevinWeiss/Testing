@@ -166,31 +166,25 @@ class BptIf(base_if.BaseIf):
     def set_uart_mode(self, data=0):
         return self.write_bytes(64, data, 1)
 
-    def get_uart_error_code(self):
-        return self.read_bytes(65, 2)
-
-    def set_uart_error_code(self, data=0):
-        return self.write_bytes(65, data, 2)
-
     def get_uart_baud(self):
-        return self.read_bytes(67, 4)
+        return self.read_bytes(65, 4)
 
     def set_uart_baud(self, data=0):
-        return self.write_bytes(67, data, 4)
+        return self.write_bytes(65, data, 4)
 
-    def get_uart_reg_output(self):
-        return self.read_bytes(71, 1)
+    def get_uart_rx_count(self):
+        return self.read_bytes(69, 2)
 
-    def set_uart_reg_output(self, data=0):
-        return self.write_bytes(71, data, 1)
+    def set_uart_rx_count(self, data=0):
+        return self.write_bytes(69, data, 2)
 
-    def get_uart_size(self):
-        return self.read_bytes(72, 1)
+    def get_uart_tx_count(self):
+        return self.read_bytes(71, 2)
 
-    def set_uart_size(self, data=0):
-        return self.write_bytes(72, data, 1)
+    def set_uart_tx_count(self, data=0):
+        return self.write_bytes(71, data, 2)
 
-    def get_uart_ctrl(self, data=0):
+    def get_uart_ctrl(self):
         return self.read_bytes(73, 1)
 
     def set_uart_ctrl(self, data=0):
@@ -436,14 +430,12 @@ class BptIf(base_if.BaseIf):
         cmds.append(self.get_spi_res11)
         cmds.append(self.set_uart_mode)
         cmds.append(self.get_uart_mode)
-        cmds.append(self.set_uart_error_code)
-        cmds.append(self.get_uart_error_code)
         cmds.append(self.set_uart_baud)
         cmds.append(self.get_uart_baud)
-        cmds.append(self.set_uart_reg_output)
-        cmds.append(self.get_uart_reg_output)
-        cmds.append(self.set_uart_size)
-        cmds.append(self.get_uart_size)
+        cmds.append(self.set_uart_rx_count)
+        cmds.append(self.get_uart_rx_count)
+        cmds.append(self.set_uart_tx_count)
+        cmds.append(self.get_uart_tx_count)
         cmds.append(self.set_uart_ctrl)
         cmds.append(self.get_uart_ctrl)
         cmds.append(self.set_uart_res6)

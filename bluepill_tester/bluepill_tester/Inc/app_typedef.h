@@ -117,14 +117,12 @@ typedef union uart_t_TAG {
 	struct {
 		/* Test mode */
 		uint8_t mode;
-		/*  */
-		uint16_t error_code;
 		/* Baudrate */
 		uint32_t baud;
-		/*  */
-		uint8_t reg_output;
-		/*  */
-		uint8_t size;
+		/* Number of receive bytes */
+		uint16_t rx_count;
+		/* Number of transmitted bytes */
+		uint16_t tx_count;
 		/* UART control register */
 		uart_ctrl_t ctrl;
 		/* reserve bytes */
