@@ -188,24 +188,19 @@
           "description" : "Test mode"
         },
         {
-          "name" : "error_code",
-          "type" : "uint16_t",
-          "description" : ""
-        },
-        {
           "name" : "baud",
           "type" : "uint32_t",
           "description" : "Baudrate"
         },
         {
-          "name" : "reg_output",
-          "type" : "uint8_t",
-          "description" : ""
+          "name" : "rx_count",
+          "type" : "uint16_t",
+          "description" : "Number of received bytes"
         },
         {
-          "name" : "size",
-          "type" : "uint8_t",
-          "description" : ""
+          "name" : "tx_count",
+          "type" : "uint16_t",
+          "description" : "Number of transmitted bytes"
         },
         {
           "name" : "ctrl",

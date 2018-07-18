@@ -50,6 +50,8 @@ error_t _init_reg(map_t *reg_to_init) {
 	reg_to_init->i2c.clk_stretch_delay = 0x000;
 
 	reg_to_init->uart.baud = DEFAULT_UART_BAUDRATE;
+	reg_to_init->uart.rx_count = 0;
+	reg_to_init->uart.tx_count = 0;
 	reg_to_init->uart.ctrl.parity = DEFAULT_UART_PARITY;
 	reg_to_init->uart.ctrl.stop_bits = DEFAULT_UART_STOP_BITS;
 
@@ -107,6 +109,18 @@ error_t read_reg(uint32_t index, uint8_t *data) {
 	return EUNKNOWN;
 }
 
+error_t read_regs(uint32_t index, uint8_t *data, uint16_t size) {
+    error_t errcode = EUNKNOWN;
+    for (int i = 0; i < size; i++) {
+        DIS_INT;
+        errcode = read_reg(index + i, &data[i]);
+        EN_INT;
+        if (errcode != EOK)
+            return errcode;
+    }
+    return errcode;
+}
+
 error_t write_reg(uint32_t index, uint8_t data, uint8_t access) {
 
 	if (index >= sizeof(reg)) {
@@ -120,3 +134,14 @@ error_t write_reg(uint32_t index, uint8_t data, uint8_t access) {
 	return EUNKNOWN;
 }
 
+error_t write_regs(uint32_t index, uint8_t *data, uint16_t size, uint8_t access) {
+    error_t errcode = EUNKNOWN;
+    for (int i = 0; i < size; i++) {
+        DIS_INT;
+        errcode = write_reg(index + i, data[i], access);
+        EN_INT;
+        if (errcode != EOK)
+            return errcode;
+    }
+    return errcode;
+}
