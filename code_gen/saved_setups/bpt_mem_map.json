@@ -533,22 +533,6 @@
     {
         "access": 1,
         "bit_offset": 0,
-        "bits": 16,
-        "default": 0,
-        "description": "",
-        "is_bitfield": false,
-        "name": [
-            "uart",
-            "error_code"
-        ],
-        "offset": 65,
-        "size": 2,
-        "total_size": 2,
-        "type": "uint16_t"
-    },
-    {
-        "access": 1,
-        "bit_offset": 0,
         "bits": 32,
         "default": 0,
         "description": "Baudrate",
@@ -557,7 +541,7 @@
             "uart",
             "baud"
         ],
-        "offset": 67,
+        "offset": 65,
         "size": 4,
         "total_size": 4,
         "type": "uint32_t"
@@ -565,34 +549,34 @@
     {
         "access": 1,
         "bit_offset": 0,
-        "bits": 8,
+        "bits": 16,
         "default": 0,
-        "description": "",
+        "description": "Number of received bytes",
         "is_bitfield": false,
         "name": [
             "uart",
-            "reg_output"
+            "rx_count"
         ],
-        "offset": 71,
-        "size": 1,
-        "total_size": 1,
-        "type": "uint8_t"
+        "offset": 69,
+        "size": 2,
+        "total_size": 2,
+        "type": "uint16_t"
     },
     {
         "access": 1,
         "bit_offset": 0,
-        "bits": 8,
+        "bits": 16,
         "default": 0,
-        "description": "",
+        "description": "Number of transmitted bytes",
         "is_bitfield": false,
         "name": [
             "uart",
-            "size"
+            "tx_count"
         ],
-        "offset": 72,
-        "size": 1,
-        "total_size": 1,
-        "type": "uint8_t"
+        "offset": 71,
+        "size": 2,
+        "total_size": 2,
+        "type": "uint16_t"
     },
     {
         "access": 1,
