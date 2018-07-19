@@ -116,6 +116,8 @@ typedef struct uart_ctrl_t_TAG {
 	uint8_t stop_bits : 1;
 	/* Parity */
 	uint8_t parity : 2;
+	/* RTS pin state */
+	uint8_t rts : 1;
 } uart_ctrl_t;
 
 /* @brief  */

@@ -87,5 +87,11 @@ error_t uart_dut_execute(uart_t *uart) {
 	DIS_INT;
 	HAL_UART_Init(uart_dut_inst->huart);
 	EN_INT;
+
+	if (uart->ctrl.rts)
+		HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_SET);
+	else
+		HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_RESET);
+
 	return EOK;
 }
