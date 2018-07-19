@@ -6,8 +6,12 @@
  */
 #include "port.h"
 #include "stm32f1xx_hal.h"
+#ifdef BLUEPILL
+#include "usb_device.h"
+#endif
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+extern void _Error_Handler(char *, int);
 
 ADC_HandleTypeDef hadc_pm;
 ADC_HandleTypeDef hadc_dut;
