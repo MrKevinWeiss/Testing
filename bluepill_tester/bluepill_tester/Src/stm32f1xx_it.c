@@ -42,18 +42,20 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+#ifdef BLUEPILL
 extern PCD_HandleTypeDef hpcd_USB_FS;
-extern DMA_HandleTypeDef hdma_adc1;
-extern ADC_HandleTypeDef hadc1;
-extern ADC_HandleTypeDef hadc2;
-extern I2C_HandleTypeDef hi2c1;
-extern SPI_HandleTypeDef hspi1;
-extern TIM_HandleTypeDef htim1;
-extern DMA_HandleTypeDef hdma_usart1_rx;
-extern DMA_HandleTypeDef hdma_usart1_tx;
-extern DMA_HandleTypeDef hdma_usart3_rx;
-extern DMA_HandleTypeDef hdma_usart3_tx;
-extern UART_HandleTypeDef huart3;
+#endif
+extern DMA_HandleTypeDef hdma_adc_pm;
+extern ADC_HandleTypeDef hadc_pm;
+extern ADC_HandleTypeDef hadc_dut;
+extern I2C_HandleTypeDef hi2c_dut;
+extern SPI_HandleTypeDef hspi_dut;
+extern TIM_HandleTypeDef htim_ic;
+extern DMA_HandleTypeDef hdma_usart_if_rx;
+extern DMA_HandleTypeDef hdma_usart_if_tx;
+extern DMA_HandleTypeDef hdma_usart_dut_rx;
+extern DMA_HandleTypeDef hdma_usart_dut_tx;
+extern UART_HandleTypeDef huart_dut;
 
 /******************************************************************************/
 /*            Cortex-M3 Processor Interruption and Exception Handlers         */
@@ -199,7 +201,7 @@ void DMA1_Channel1_IRQHandler(void) {
 	/* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
 
 	/* USER CODE END DMA1_Channel1_IRQn 0 */
-	HAL_DMA_IRQHandler(&hdma_adc1);
+	HAL_DMA_IRQHandler(&hdma_adc_pm);
 	/* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
 	/* USER CODE END DMA1_Channel1_IRQn 1 */
@@ -212,9 +214,10 @@ void DMA1_Channel2_IRQHandler(void) {
 	/* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
 
 	/* USER CODE END DMA1_Channel2_IRQn 0 */
-	HAL_DMA_IRQHandler(&hdma_usart3_tx);
+#ifdef BLUEPILL
+	HAL_DMA_IRQHandler(&hdma_usart_dut_tx);
 	/* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
-
+#endif
 	/* USER CODE END DMA1_Channel2_IRQn 1 */
 }
 
@@ -225,7 +228,9 @@ void DMA1_Channel3_IRQHandler(void) {
 	/* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
 
 	/* USER CODE END DMA1_Channel3_IRQn 0 */
-	HAL_DMA_IRQHandler(&hdma_usart3_rx);
+#ifdef BLUEPILL
+	HAL_DMA_IRQHandler(&hdma_usart_dut_rx);
+#endif
 	/* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
 
 	/* USER CODE END DMA1_Channel3_IRQn 1 */
@@ -238,7 +243,12 @@ void DMA1_Channel4_IRQHandler(void) {
 	/* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
 
 	/* USER CODE END DMA1_Channel4_IRQn 0 */
-	HAL_DMA_IRQHandler(&hdma_usart1_tx);
+#ifdef BLUEPILL
+	HAL_DMA_IRQHandler(&hdma_usart_if_tx);
+#endif
+#ifdef NUCLEOF103RB
+	HAL_DMA_IRQHandler(&hdma_usart_dut_tx);
+#endif
 	/* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
 
 	/* USER CODE END DMA1_Channel4_IRQn 1 */
@@ -251,10 +261,46 @@ void DMA1_Channel5_IRQHandler(void) {
 	/* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
 
 	/* USER CODE END DMA1_Channel5_IRQn 0 */
-	HAL_DMA_IRQHandler(&hdma_usart1_rx);
+#ifdef BLUEPILL
+	HAL_DMA_IRQHandler(&hdma_usart_if_rx);
+#endif
+
+#ifdef NUCLEOF103RB
+	HAL_DMA_IRQHandler(&hdma_usart_dut_rx);
+#endif
 	/* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
 
 	/* USER CODE END DMA1_Channel5_IRQn 1 */
+}
+
+/**
+ * @brief This function handles DMA1 channel6 global interrupt.
+ */
+void DMA1_Channel6_IRQHandler(void) {
+	/* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
+
+	/* USER CODE END DMA1_Channel6_IRQn 0 */
+#ifdef NUCLEOF103RB
+	HAL_DMA_IRQHandler(&hdma_usart_if_rx);
+#endif
+	/* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
+
+	/* USER CODE END DMA1_Channel6_IRQn 1 */
+}
+
+/**
+ * @brief This function handles DMA1 channel7 global interrupt.
+ */
+void DMA1_Channel7_IRQHandler(void) {
+	/* USER CODE BEGIN DMA1_Channel7_IRQn 0 */
+
+	/* USER CODE END DMA1_Channel7_IRQn 0 */
+#ifdef NUCLEOF103RB
+	HAL_DMA_IRQHandler(&hdma_usart_if_tx);
+#endif
+	/* USER CODE BEGIN DMA1_Channel7_IRQn 1 */
+
+	/* USER CODE END DMA1_Channel7_IRQn 1 */
 }
 
 /**
@@ -264,8 +310,8 @@ void ADC1_2_IRQHandler(void) {
 	/* USER CODE BEGIN ADC1_2_IRQn 0 */
 
 	/* USER CODE END ADC1_2_IRQn 0 */
-	HAL_ADC_IRQHandler(&hadc1);
-	HAL_ADC_IRQHandler(&hadc2);
+	HAL_ADC_IRQHandler(&hadc_dut);
+	HAL_ADC_IRQHandler(&hadc_pm);
 	/* USER CODE BEGIN ADC1_2_IRQn 1 */
 
 	/* USER CODE END ADC1_2_IRQn 1 */
@@ -276,11 +322,11 @@ void ADC1_2_IRQHandler(void) {
  */
 void USB_LP_CAN1_RX0_IRQHandler(void) {
 	/* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 0 */
-
+#ifdef BLUEPILL
 	/* USER CODE END USB_LP_CAN1_RX0_IRQn 0 */
 	HAL_PCD_IRQHandler(&hpcd_USB_FS);
 	/* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 1 */
-
+#endif
 	/* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
 
@@ -291,7 +337,7 @@ void TIM1_UP_IRQHandler(void) {
 	/* USER CODE BEGIN TIM1_UP_IRQn 0 */
 
 	/* USER CODE END TIM1_UP_IRQn 0 */
-	HAL_TIM_IRQHandler(&htim1);
+	HAL_TIM_IRQHandler(&htim_ic);
 	/* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
 	/* USER CODE END TIM1_UP_IRQn 1 */
@@ -301,28 +347,14 @@ void TIM1_UP_IRQHandler(void) {
  * @brief This function handles I2C1 event interrupt.
  */
 void I2C1_EV_IRQHandler(void) {
-	/* USER CODE BEGIN I2C1_EV_IRQn 0 */
-	i2c_it(&hi2c1);
-#if 0
-	/* USER CODE END I2C1_EV_IRQn 0 */
-	HAL_I2C_EV_IRQHandler(&hi2c1);
-	/* USER CODE BEGIN I2C1_EV_IRQn 1 */
-#endif
-	/* USER CODE END I2C1_EV_IRQn 1 */
+	i2c_it(&hi2c_dut);
 }
 
 /**
  * @brief This function handles I2C1 error interrupt.
  */
 void I2C1_ER_IRQHandler(void) {
-	/* USER CODE BEGIN I2C1_ER_IRQn 0 */
-	i2c_err(&hi2c1);
-#if 0
-	/* USER CODE END I2C1_ER_IRQn 0 */
-	HAL_I2C_ER_IRQHandler(&hi2c1);
-	/* USER CODE BEGIN I2C1_ER_IRQn 1 */
-#endif
-	/* USER CODE END I2C1_ER_IRQn 1 */
+	i2c_err(&hi2c_dut);
 }
 
 /**
@@ -332,10 +364,27 @@ void SPI1_IRQHandler(void) {
 	/* USER CODE BEGIN SPI1_IRQn 0 */
 
 	/* USER CODE END SPI1_IRQn 0 */
-	HAL_SPI_IRQHandler(&hspi1);
+#ifdef BLUEPILL
+	HAL_SPI_IRQHandler(&hspi_dut);
+#endif
 	/* USER CODE BEGIN SPI1_IRQn 1 */
 
 	/* USER CODE END SPI1_IRQn 1 */
+}
+
+/**
+ * @brief This function handles SPI2 global interrupt.
+ */
+void SPI2_IRQHandler(void) {
+	/* USER CODE BEGIN SPI2_IRQn 0 */
+
+	/* USER CODE END SPI2_IRQn 0 */
+#ifdef NUCLEOF103RB
+	HAL_SPI_IRQHandler(&hspi_dut);
+#endif
+	/* USER CODE BEGIN SPI2_IRQn 1 */
+
+	/* USER CODE END SPI2_IRQn 1 */
 }
 
 /**
@@ -345,10 +394,27 @@ void USART3_IRQHandler(void) {
 	/* USER CODE BEGIN USART3_IRQn 0 */
 
 	/* USER CODE END USART3_IRQn 0 */
-	HAL_UART_IRQHandler(&huart3);
+#ifdef BLUEPILL
+	HAL_UART_IRQHandler(&huart_dut);
+#endif
 	/* USER CODE BEGIN USART3_IRQn 1 */
 
 	/* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+ * @brief This function handles USART1 global interrupt.
+ */
+void USART1_IRQHandler(void) {
+	/* USER CODE BEGIN USART1_IRQn 0 */
+
+	/* USER CODE END USART1_IRQn 0 */
+#ifdef NUCLEOF103RB
+	HAL_UART_IRQHandler(&huart_dut);
+#endif
+	/* USER CODE BEGIN USART1_IRQn 1 */
+
+	/* USER CODE END USART1_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

@@ -3,3 +3,7 @@
 bluepill_tester Debug.cfg
 bluepill_tester.cfg
 /Release/
+/DEBUG_BPT/
+/RELEASE-NUCELO-F103RB/
+/DEBUG-NUCLEO-F103RB/
+/RELEASE_BPT/
