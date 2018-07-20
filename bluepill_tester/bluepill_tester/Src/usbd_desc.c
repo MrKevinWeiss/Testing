@@ -46,7 +46,7 @@
  *
  ******************************************************************************
  */
-
+#ifdef BLUEPILL
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_core.h"
 #include "usbd_desc.h"
@@ -332,5 +332,5 @@ uint8_t * USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed,
 /**
  * @}
  */
-
+#endif
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

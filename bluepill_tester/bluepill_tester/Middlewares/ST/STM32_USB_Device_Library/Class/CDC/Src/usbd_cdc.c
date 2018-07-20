@@ -650,6 +650,7 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
     default:
       break;
     }
+    break;
  
   default: 
     break;

@@ -46,7 +46,7 @@
  *
  ******************************************************************************
  */
-
+#ifdef BLUEPILL
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx.h"
 #include "stm32f1xx_hal.h"
@@ -68,7 +68,7 @@
 /* USER CODE END PV */
 
 PCD_HandleTypeDef hpcd_USB_FS;
-void _Error_Handler(char * file, int line);
+extern void _Error_Handler(char *, int);
 
 /* USER CODE BEGIN 0 */
 
@@ -732,5 +732,5 @@ void HAL_PCDEx_SetConnectionState(PCD_HandleTypeDef *hpcd, uint8_t state) {
 	}
 	/* USER CODE END 6 */
 }
-
+#endif
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

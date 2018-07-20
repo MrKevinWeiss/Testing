@@ -46,7 +46,7 @@
  *
  ******************************************************************************
  */
-
+#ifdef BLUEPILL
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 
@@ -340,5 +340,5 @@ USBD_CDC_HandleTypeDef* get_cdc_handle() {
 /**
  * @}
  */
-
+#endif
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
