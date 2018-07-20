@@ -1,6 +1,6 @@
 [
     {
-        "access": 6,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -17,7 +17,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 32,
         "default": 0,
@@ -33,7 +33,7 @@
         "type": "uint32_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -50,7 +50,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -67,7 +67,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -84,7 +84,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -101,7 +101,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -118,7 +118,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -135,7 +135,7 @@
         "type": "uint8_t"
     },
     {
-        "access": 1,
+        "access": 0,
         "bit_offset": 0,
         "bits": 8,
         "default": 0,
@@ -324,12 +324,12 @@
         "bit_offset": 5,
         "bits": 1,
         "default": 0,
-        "description": "disables i2c",
+        "description": "Forces a data nack",
         "is_bitfield": true,
         "name": [
             "i2c",
             "mode",
-            "disable"
+            "nack_data"
         ],
         "offset": 32,
         "size": 1,
@@ -339,18 +339,120 @@
     {
         "access": 1,
         "bit_offset": 0,
-        "bits": 16,
+        "bits": 8,
         "default": 0,
-        "description": "Error code for I2C",
+        "description": "Specific modes for I2C",
         "is_bitfield": false,
         "name": [
             "i2c",
-            "error_code"
+            "status"
         ],
         "offset": 33,
-        "size": 2,
-        "total_size": 2,
-        "type": "uint16_t"
+        "size": 1,
+        "total_size": 1,
+        "type": "i2c_status_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 1,
+        "bits": 1,
+        "default": 0,
+        "description": "Overrun/Underrun: Request for new byte when not ready",
+        "is_bitfield": true,
+        "name": [
+            "i2c",
+            "status",
+            "OVR"
+        ],
+        "offset": 33,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 2,
+        "bits": 1,
+        "default": 0,
+        "description": "Acknowledge failure",
+        "is_bitfield": true,
+        "name": [
+            "i2c",
+            "status",
+            "AF"
+        ],
+        "offset": 33,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 3,
+        "bits": 1,
+        "default": 0,
+        "description": "Bus error:  Non-valid position during a byte transfer",
+        "is_bitfield": true,
+        "name": [
+            "i2c",
+            "status",
+            "BERR"
+        ],
+        "offset": 33,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 4,
+        "bits": 1,
+        "default": 0,
+        "description": "General call address recieved",
+        "is_bitfield": true,
+        "name": [
+            "i2c",
+            "status",
+            "GENCALL"
+        ],
+        "offset": 33,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 5,
+        "bits": 1,
+        "default": 0,
+        "description": "Forces a data nack",
+        "is_bitfield": true,
+        "name": [
+            "i2c",
+            "status",
+            "BUSY"
+        ],
+        "offset": 33,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 6,
+        "bits": 1,
+        "default": 0,
+        "description": "Repeated start detected",
+        "is_bitfield": true,
+        "name": [
+            "i2c",
+            "status",
+            "RSR"
+        ],
+        "offset": 33,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
     },
     {
         "access": 1,
@@ -363,7 +465,7 @@
             "i2c",
             "clk_stretch_delay"
         ],
-        "offset": 35,
+        "offset": 34,
         "size": 2,
         "total_size": 2,
         "type": "uint16_t"
@@ -371,31 +473,15 @@
     {
         "access": 1,
         "bit_offset": 0,
-        "bits": 8,
-        "default": 0,
-        "description": "Injects failures for the bus",
-        "is_bitfield": false,
-        "name": [
-            "i2c",
-            "inject_failure_mode"
-        ],
-        "offset": 37,
-        "size": 1,
-        "total_size": 1,
-        "type": "uint8_t"
-    },
-    {
-        "access": 1,
-        "bit_offset": 0,
         "bits": 16,
-        "default": 0,
+        "default": 85,
         "description": "Primary slave address",
         "is_bitfield": false,
         "name": [
             "i2c",
             "slave_addr_1"
         ],
-        "offset": 38,
+        "offset": 36,
         "size": 2,
         "total_size": 2,
         "type": "uint16_t"
@@ -404,14 +490,14 @@
         "access": 1,
         "bit_offset": 0,
         "bits": 16,
-        "default": 0,
+        "default": 64,
         "description": "Secondary slave address",
         "is_bitfield": false,
         "name": [
             "i2c",
             "slave_addr_2"
         ],
-        "offset": 40,
+        "offset": 38,
         "size": 2,
         "total_size": 2,
         "type": "uint16_t"
@@ -427,7 +513,7 @@
             "i2c",
             "r_count"
         ],
-        "offset": 42,
+        "offset": 40,
         "size": 1,
         "total_size": 1,
         "type": "uint8_t"
@@ -443,7 +529,7 @@
             "i2c",
             "w_count"
         ],
-        "offset": 43,
+        "offset": 41,
         "size": 1,
         "total_size": 1,
         "type": "uint8_t"
@@ -458,11 +544,11 @@
         "name": [
             "i2c",
             "res",
-            "4"
+            "6"
         ],
-        "offset": 44,
+        "offset": 42,
         "size": 1,
-        "total_size": 4,
+        "total_size": 6,
         "type": "uint8_t"
     },
     {
@@ -1141,6 +1227,22 @@
         "type": "uint32_t"
     },
     {
+        "access": 3,
+        "bit_offset": 0,
+        "bits": 8,
+        "default": 0,
+        "description": "Writeable registers for user testing",
+        "is_bitfield": false,
+        "name": [
+            "user_reg",
+            "64"
+        ],
+        "offset": 152,
+        "size": 1,
+        "total_size": 64,
+        "type": "uint8_t"
+    },
+    {
         "access": 0,
         "bit_offset": 0,
         "bits": 8,
@@ -1149,11 +1251,11 @@
         "is_bitfield": false,
         "name": [
             "res",
-            "104"
+            "40"
         ],
-        "offset": 152,
+        "offset": 216,
         "size": 1,
-        "total_size": 104,
+        "total_size": 40,
         "type": "uint8_t"
     }
 ]
