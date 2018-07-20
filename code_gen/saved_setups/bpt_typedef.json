@@ -398,7 +398,7 @@
           "type" : "uint8_t",
           "array_size" : 64,
           "access" : 3,
-          "description" : "Writeable registers for user testing"
+          "description" : "Writable registers for user testing"
         }
       ]
     }
