@@ -93,10 +93,12 @@ def parse_mem_map_to_access_c(mem_map):
                 a_str += ", "
             a_str += "0x%02X" % record["access"]
             size += 1
-        a_str += ",/* {} */\n".format('_'.join(record["name"]))
-    a_str += "/* total size %d */\n" % size
+        if record != mem_map[-1]:
+            a_str += ","
+        a_str += " /* {} */\n".format('_'.join(record["name"]))
+    a_str = a_str.rstrip(',')
+    a_str += "/* total size %d */\n};" % size
     return a_str
-
 
 def main():
     """Tests parsing each output based on example typedef."""
