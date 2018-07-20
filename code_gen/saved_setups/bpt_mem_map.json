@@ -629,6 +629,23 @@
         "type": "uint8_t"
     },
     {
+        "access": 1,
+        "bit_offset": 4,
+        "bits": 1,
+        "default": 0,
+        "description": "RTS pin state",
+        "is_bitfield": true,
+        "name": [
+            "uart",
+            "ctrl",
+            "rts"
+        ],
+        "offset": 73,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
         "access": 0,
         "bit_offset": 0,
         "bits": 8,
