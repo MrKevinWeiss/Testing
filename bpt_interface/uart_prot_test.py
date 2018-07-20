@@ -80,14 +80,16 @@ class RiotProtocolTest(object):
                 dut_port, baudrate=115200, timeout=1)
 
     def setup_dut_uart(self, baudrate=115200, parity=serial.PARITY_NONE,
-                       stopbits=serial.STOPBITS_ONE):
+                       stopbits=serial.STOPBITS_ONE, rtscts=False):
         '''Setup DUT UART.'''
         self.dev.baudrate = baudrate
         self.dev.parity = parity
         self.dev.stopbits = stopbits
+        self.dev.rtscts = rtscts
 
     def setup_bpt(self, mode=BptUartModes.ECHO.value, baudrate=115200,
-                  parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE):
+                  parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,
+                  rts=True):
 
         '''Setup BPT.'''
         # setup testing mode
@@ -113,6 +115,10 @@ class RiotProtocolTest(object):
 
         if stopbits == serial.STOPBITS_TWO:
             ctrl = ctrl | 0x01
+
+        # invert RTS level as it is a low active signal
+        if not rts:
+            ctrl = ctrl | 0x08
 
         cmd_info = self.bpt.set_uart_ctrl(ctrl)
         if cmd_info.result != 'Success':
@@ -158,6 +164,66 @@ class RiotProtocolTest(object):
         logging.debug("RX {}, TX {}".format(rx.data, tx.data))
 
         return True
+
+    def echo_test_with_hw_cf(self):
+        if not self.setup_bpt(rts=True):
+            return False
+
+        self.setup_dut_uart(rtscts=True)
+
+        test_str = b'\x30\x30\x0a'
+        try:
+            self.dev.write(test_str)
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err)
+            return False
+
+        if len(result) != len(test_str):
+            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+            return False
+
+        if result != test_str:
+            logging.error("Wrong string received")
+            return False
+
+        logging.debug('Received string: {}'.format(result))
+
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
+
+        return True
+
+    def echo_test_with_hw_cf_rts_low(self):
+        if not self.setup_bpt(rts=False):
+            return False
+
+        self.setup_dut_uart(rtscts=True)
+
+        test_str = b'\x30\x30\x0a'
+        try:
+            self.dev.write(test_str)
+            result = self.dev.readline()
+        except Exception as err:
+            logging.error(err)
+            return False
+
+        if len(result) != len(test_str):
+            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
+            return True
+
+        if result != test_str:
+            logging.error("Wrong string received")
+            return False
+
+        logging.debug('Received string: {}'.format(result))
+
+        rx = self.bpt.get_uart_rx_count()
+        tx = self.bpt.get_uart_tx_count()
+        logging.debug("RX {}, TX {}".format(rx.data, tx.data))
+
+        return False
 
     def echo_test_wrong_baudrate(self):
         if not self.setup_bpt(baudrate=9600):
@@ -378,6 +444,16 @@ def main():
         logging.info("Echo test: OK")
     else:
         logging.info("Echo test: failed")
+
+    if test.echo_test_with_hw_cf():
+        logging.info("Echo test hw fc: OK")
+    else:
+        logging.info("Echo test hw fc: failed")
+
+    if test.echo_test_with_hw_cf_rts_low():
+        logging.info("Echo test hw fc RTS low: OK")
+    else:
+        logging.info("Echo test hw fc RTS low: failed")
 
     if test.echo_test_wrong_baudrate():
         logging.info("Echo test wrong baudrate: OK")
