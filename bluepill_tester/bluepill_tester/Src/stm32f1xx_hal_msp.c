@@ -654,12 +654,12 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
 		 PB13     ------> USART3_CTS
 		 PB14     ------> USART3_RTS
 		 */
-		GPIO_InitStruct.Pin = DUT_TX_Pin | DUT_RTS_Pin;
+		GPIO_InitStruct.Pin = DUT_TX_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-		GPIO_InitStruct.Pin = DUT_RX_Pin | DUT_CTS_Pin;
+		GPIO_InitStruct.Pin = DUT_RX_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -831,7 +831,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart) {
 		 PB14     ------> USART3_RTS
 		 */
 		HAL_GPIO_DeInit(GPIOB,
-				DUT_TX_Pin | DUT_RX_Pin | DUT_CTS_Pin | DUT_RTS_Pin);
+				DUT_TX_Pin | DUT_RX_Pin);
 
 		/* USART3 DMA DeInit */
 		HAL_DMA_DeInit(huart->hdmarx);

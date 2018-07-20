@@ -216,6 +216,11 @@
             "name" : "parity",
             "bits" : 2,
             "description" : "Parity"
+          },
+          {
+            "name" : "rts",
+            "bits" : 1,
+            "description" : "RTS pin state"
           }
           ],
           "description" : "UART control register"
