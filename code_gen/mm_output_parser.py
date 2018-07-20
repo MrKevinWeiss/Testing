@@ -100,6 +100,7 @@ def parse_mem_map_to_access_c(mem_map):
     a_str += "/* total size %d */\n};" % size
     return a_str
 
+
 def main():
     """Tests parsing each output based on example typedef."""
     from td_parser import parse_basic_typedefs
