@@ -88,14 +88,15 @@ def parse_mem_map_to_access_c(mem_map):
     a_str += "const uint8_t REG_ACCESS[] = { \n"
     size = 0
     for record in mem_map:
-        for access_byte in range(record["total_size"]):
-            if access_byte != 0:
-                a_str += ", "
-            a_str += "0x%02X" % record["access"]
-            size += 1
-        if record != mem_map[-1]:
-            a_str += ","
-        a_str += " /* {} */\n".format('_'.join(record["name"]))
+        if record['is_bitfield'] is False:
+            for access_byte in range(record["total_size"]):
+                if access_byte != 0:
+                    a_str += ", "
+                a_str += "0x%02X" % record["access"]
+                size += 1
+            if record != mem_map[-1]:
+                a_str += ","
+            a_str += " /* {} */\n".format('_'.join(record["name"]))
     a_str = a_str.rstrip(',')
     a_str += "/* total size %d */\n};" % size
     return a_str

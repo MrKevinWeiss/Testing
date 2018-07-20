@@ -1,7 +1,8 @@
 /*
+ /*
  * Filename: bpt_mem_map.g
  * Author: Kevin Weiss
- * Revision: 1.00.01
+ * Revision: 1.00.02
  */
 
 #ifndef BPT_MEM_MAP_H_
@@ -33,7 +34,7 @@ typedef union timestamp_t_TAG {
 	uint8_t data8[8];
 } timestamp_t;
 
-/* @brief Specific modes for I2C */
+/* @brief Control register for device */
 typedef struct sys_cr_t_TAG {
 	/* resets the DUT */
 	uint8_t dut_rst : 1;
@@ -50,7 +51,7 @@ typedef union sys_t_TAG {
 		timestamp_t build_time;
 		/* A constant number that should always be the same */
 		uint32_t device_num;
-		/* Specific modes for I2C */
+		/* Control register for device */
 		sys_cr_t cr;
 		/* Reserved bytes */
 		uint8_t res[3];
@@ -62,37 +63,51 @@ typedef union sys_t_TAG {
 typedef struct i2c_mode_t_TAG {
 	/* 10 bit address enable */
 	uint8_t addr_10_bit : 1;
-	/* general call enable */
+	/* General call enable */
 	uint8_t general_call : 1;
-	/* disable for clk stretch */
+	/* Disable for clk stretch */
 	uint8_t no_clk_stretch : 1;
 	/* 16 bit register access mode */
 	uint8_t reg_16_bit : 1;
-	/* disables i2c */
-	uint8_t disable : 1;
+	/* Forces a data nack */
+	uint8_t nack_data : 1;
 } i2c_mode_t;
 
-/* @brief System settings for the bpt */
+/* @brief Specific modes for I2C */
+typedef struct i2c_status_t_TAG {
+	/* Overrun/Underrun: Request for new byte when not ready */
+	uint8_t OVR : 1;
+	/* Acknowledge failure */
+	uint8_t AF : 1;
+	/* Bus error:  Non-valid position during a byte transfer */
+	uint8_t BERR : 1;
+	/* General call address recieved */
+	uint8_t GENCALL : 1;
+	/* Forces a data nack */
+	uint8_t BUSY : 1;
+	/* Repeated start detected */
+	uint8_t RSR : 1;
+} i2c_status_t;
+
+/* @brief System settings for the device */
 typedef union i2c_t_TAG {
 	struct {
 		/* Specific modes for I2C */
 		i2c_mode_t mode;
-		/* Error code for I2C */
-		uint16_t error_code;
-		/* delay in us for clock stretch */
+		/* Specific modes for I2C */
+		i2c_status_t status;
+		/* Delay in us for clock stretch */
 		uint16_t clk_stretch_delay;
-		/* Injects failures for the bus */
-		uint8_t inject_failure_mode;
 		/* Primary slave address */
 		uint16_t slave_addr_1;
 		/* Secondary slave address */
 		uint16_t slave_addr_2;
-		/* last read frame byte count */
+		/* Last read frame byte count */
 		uint8_t r_count;
-		/* last write frame byte count */
+		/* Last write frame byte count */
 		uint8_t w_count;
 		/* Reserved bytes */
-		uint8_t res[4];
+		uint8_t res[6];
 	};
 	uint8_t data8[16];
 } i2c_t;
@@ -211,8 +226,10 @@ typedef union map_t_TAG {
 		pwm_t pwm;
 		/*  */
 		tmr_t tmr;
+		/* Writable registers for user testing */
+		uint8_t user_reg[64];
 		/* Reserved bytes */
-		uint8_t res[104];
+		uint8_t res[40];
 	};
 	uint8_t data8[256];
 } map_t;

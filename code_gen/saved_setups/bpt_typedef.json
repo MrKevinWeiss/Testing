@@ -2,7 +2,7 @@
   "metadata" : {
     "name": "bpt_mem_map",
     "author": "Kevin Weiss",
-    "revision": "1.00.01"
+    "revision": "1.00.02"
   },
   "typedefs" :[
     {
@@ -84,14 +84,14 @@
             "description" : "resets the DUT"
           }
           ],
-          "description" : "Specific modes for I2C"
+          "description" : "Control register for device"
         }
       ]
     },
     {
       "name" : "i2c_t",
       "size" :16,
-      "description" : "System settings for the bpt",
+      "description" : "System settings for the device",
       "elements" : [
         {
           "name" : "mode",
@@ -106,12 +106,12 @@
           {
             "name" : "general_call",
             "bits" : 1,
-            "description" : "general call enable"
+            "description" : "General call enable"
           },
           {
             "name" : "no_clk_stretch",
             "bits" : 1,
-            "description" : "disable for clk stretch"
+            "description" : "Disable for clk stretch"
           },
           {
             "name" : "reg_16_bit",
@@ -119,27 +119,56 @@
             "description" : "16 bit register access mode"
           },
           {
-            "name" : "disable",
+            "name" : "nack_data",
             "bits" : 1,
-            "description" : "disables i2c"
+            "description" : "Forces a data nack"
           }
           ],
           "description" : "Specific modes for I2C"
         },
         {
-          "name" : "error_code",
-          "type" : "uint16_t",
-          "description" : "Error code for I2C"
+          "name" : "status",
+          "bit_type" : "uint8_t",
+          "type" : "i2c_status_t",
+          "description" : "Specific modes for I2C",
+          "bitfield" : [
+          {
+            "name" : "OVR",
+            "bits" : 1,
+            "description" : "Overrun/Underrun: Request for new byte when not ready"
+          },
+          {
+            "name" : "AF",
+            "bits" : 1,
+            "description" : "Acknowledge failure"
+          },
+          {
+            "name" : "BERR",
+            "bits" : 1,
+            "description" : "Bus error:  Non-valid position during a byte transfer"
+          },
+          {
+            "name" : "GENCALL",
+            "bits" : 1,
+            "description" : "General call address recieved"
+          },
+          {
+            "name" : "BUSY",
+            "bits" : 1,
+            "description" : "Forces a data nack"
+          },
+          {
+            "name" : "RSR",
+            "bits" : 1,
+            "description" : "Repeated start detected"
+          }
+          ],
+          "description" : "Specific modes for I2C"
         },
         {
           "name" : "clk_stretch_delay",
           "type" : "uint16_t",
-          "description" : "delay in us for clock stretch"
-        },
-        {
-          "name" : "inject_failure_mode",
-          "type" : "uint8_t",
-          "description" : "Injects failures for the bus"
+          "description" : "Delay in us for clock stretch"
         },
         {
           "name" : "slave_addr_1",
@@ -154,12 +183,12 @@
         {
           "name" : "r_count",
           "type" : "uint8_t",
-          "description" : "last read frame byte count"
+          "description" : "Last read frame byte count"
         },
         {
           "name" : "w_count",
           "type" : "uint8_t",
-          "description" : "last write frame byte count"
+          "description" : "Last write frame byte count"
         }
       ]
     },
@@ -363,6 +392,13 @@
           "name" : "tmr",
           "type" : "tmr_t",
           "description" : ""
+        },
+	{
+          "name" : "user_reg",
+          "type" : "uint8_t",
+          "array_size" : 64,
+          "access" : 3,
+          "description" : "Writable registers for user testing"
         }
       ]
     }
