@@ -55,8 +55,8 @@ error_t _init_reg(map_t *reg_to_init) {
 	reg_to_init->uart.ctrl.parity = DEFAULT_UART_PARITY;
 	reg_to_init->uart.ctrl.stop_bits = DEFAULT_UART_STOP_BITS;
 
-	for (int i = 0; i < sizeof(reg_to_init->res); i++) {
-		reg_to_init->res[i] = (uint8_t) i;
+	for (int i = 0; i < sizeof(reg_to_init->user_reg); i++) {
+		reg_to_init->user_reg[i] = (uint8_t) i;
 	}
 	EN_INT;
 	return EOK;
