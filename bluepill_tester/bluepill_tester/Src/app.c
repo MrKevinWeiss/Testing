@@ -99,100 +99,100 @@ uint32_t get_reg_size() {
 	return sizeof(reg);
 }
 
-error_t increase_reg_uint8(uint32_t index) {
+error_t increase_reg_uint8(uint32_t index, uint8_t access) {
 	uint8_t data;
 	error_t err = read_regs(index, &data, 1);
 	if (err != EOK) return err;
 	data++;
-	return write_regs(index, &data, 1);
+	return write_regs(index, &data, 1, access);
 }
 
-error_t increase_reg_int8(uint32_t index) {
+error_t increase_reg_int8(uint32_t index, uint8_t access) {
 	int8_t data;
 	error_t err = read_regs(index, (uint8_t*)&data, 1);
 	if (err != EOK) return err;
 	data++;
-	return write_regs(index, &data, 1);
+	return write_regs(index, &data, 1, access);
 }
 
-error_t increase_reg_uint16(uint32_t index) {
+error_t increase_reg_uint16(uint32_t index, uint8_t access) {
 	uint16_t data;
 	error_t err = read_regs(index, (uint8_t*)&data, 2);
 	if (err != EOK) return err;
 	data++;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 2, access);
 }
 
-error_t increase_reg_int16(uint32_t index) {
+error_t increase_reg_int16(uint32_t index, uint8_t access) {
 	int16_t data;
 	error_t err = read_regs(index, (uint8_t*)&data, 2);
 	if (err != EOK) return err;
 	data++;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 2, access);
 }
 
-error_t increase_reg_uint32(uint32_t index) {
+error_t increase_reg_uint32(uint32_t index, uint8_t access) {
 	uint32_t data;
-	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
 	if (err != EOK) return err;
 	data++;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 4, access);
 }
 
-error_t increase_reg_int32(uint32_t index) {
+error_t increase_reg_int32(uint32_t index, uint8_t access) {
 	int32_t data;
-	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
 	if (err != EOK) return err;
 	data++;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 4, access);
 }
 
-error_t decrease_reg_uint8(uint32_t index) {
+error_t decrease_reg_uint8(uint32_t index, uint8_t access) {
 	uint8_t data;
 	error_t err = read_regs(index, &data, 1);
 	if (err != EOK) return err;
 	data--;
-	return write_regs(index, &data, 1);
+	return write_regs(index, &data, 1, access);
 }
 
-error_t decrease_reg_int8(uint32_t index) {
+error_t decrease_reg_int8(uint32_t index, uint8_t access) {
 	int8_t data;
 	error_t err = read_regs(index, (uint8_t*)&data, 1);
 	if (err != EOK) return err;
 	data--;
-	return write_regs(index, &data, 1);
+	return write_regs(index, &data, 1, access);
 }
 
-error_t decrease_reg_uint16(uint32_t index) {
+error_t decrease_reg_uint16(uint32_t index, uint8_t access) {
 	uint16_t data;
 	error_t err = read_regs(index, (uint8_t*)&data, 2);
 	if (err != EOK) return err;
 	data--;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 2, access);
 }
 
-error_t decrease_reg_int16(uint32_t index) {
+error_t decrease_reg_int16(uint32_t index, uint8_t access) {
 	int16_t data;
 	error_t err = read_regs(index, (uint8_t*)&data, 2);
 	if (err != EOK) return err;
 	data--;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 2, access);
 }
 
-error_t decrease_reg_uint32(uint32_t index) {
+error_t decrease_reg_uint32(uint32_t index, uint8_t access) {
 	uint32_t data;
-	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
 	if (err != EOK) return err;
 	data--;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 4, access);
 }
 
-error_t decrease_reg_int32(uint32_t index) {
+error_t decrease_reg_int32(uint32_t index, uint8_t access) {
 	int32_t data;
-	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
 	if (err != EOK) return err;
 	data--;
-	return write_regs(index, &data, 2);
+	return write_regs(index, &data, 4, access);
 }
 
 

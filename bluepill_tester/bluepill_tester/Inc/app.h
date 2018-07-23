@@ -13,18 +13,18 @@
 
 uint32_t get_reg_size();
 
-error_t increase_reg_uint8(uint32_t index);
-error_t increase_reg_int8(uint32_t index);
-error_t increase_reg_uint16(uint32_t index);
-error_t increase_reg_int16(uint32_t index);
-error_t increase_reg_uint32(uint32_t index);
-error_t increase_reg_int32(uint32_t index);
-error_t decrease_reg_uint8(uint32_t index);
-error_t decrease_reg_int8(uint32_t index);
-error_t decrease_reg_uint16(uint32_t index);
-error_t decrease_reg_int16(uint32_t index);
-error_t decrease_reg_uint32(uint32_t index);
-error_t decrease_reg_int32(uint32_t index);
+error_t increase_reg_uint8(uint32_t index, uint8_t access);
+error_t increase_reg_int8(uint32_t index, uint8_t access);
+error_t increase_reg_uint16(uint32_t index, uint8_t access);
+error_t increase_reg_int16(uint32_t index, uint8_t access);
+error_t increase_reg_uint32(uint32_t index, uint8_t access);
+error_t increase_reg_int32(uint32_t index, uint8_t access);
+error_t decrease_reg_uint8(uint32_t index, uint8_t access);
+error_t decrease_reg_int8(uint32_t index, uint8_t access);
+error_t decrease_reg_uint16(uint32_t index, uint8_t access);
+error_t decrease_reg_int16(uint32_t index, uint8_t access);
+error_t decrease_reg_uint32(uint32_t index, uint8_t access);
+error_t decrease_reg_int32(uint32_t index, uint8_t access);
 error_t read_reg(uint32_t index, uint8_t *data);
 error_t read_regs(uint32_t index, uint8_t *data, uint16_t size);
 error_t write_reg(uint32_t index, uint8_t data, uint8_t access);
