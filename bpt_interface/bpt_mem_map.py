@@ -302,9 +302,25 @@ class BptMemMap(Basedevice):
         """RTS pin state"""
         return self.write_bits(73, 4, 1, data)
 
-    def get_uart_res_6(self):
+    def get_uart_status(self):
+        """UART status register"""
+        return self.read_bytes(74, 1)
+
+    def set_uart_status(self, data=0):
+        """UART status register"""
+        return self.write_bytes(74, data, 1)
+
+    def get_uart_status_cts(self):
+        """CTS pin state"""
+        return self.read_bits(74, 1, 1)
+
+    def set_uart_status_cts(self, data=0):
+        """CTS pin state"""
+        return self.write_bits(74, 1, 1, data)
+
+    def get_uart_res_5(self):
         """Reserved bytes"""
-        return self.read_bytes(74, 6)
+        return self.read_bytes(75, 5)
 
     def get_rtc_second(self):
         """The seconds in decimal"""
@@ -612,7 +628,11 @@ class BptMemMap(Basedevice):
         cmds.append(self.set_uart_ctrl_parity)
         cmds.append(self.get_uart_ctrl_rts)
         cmds.append(self.set_uart_ctrl_rts)
-        cmds.append(self.get_uart_res_6)
+        cmds.append(self.get_uart_status)
+        cmds.append(self.set_uart_status)
+        cmds.append(self.get_uart_status_cts)
+        cmds.append(self.set_uart_status_cts)
+        cmds.append(self.get_uart_res_5)
         cmds.append(self.get_rtc_second)
         cmds.append(self.set_rtc_second)
         cmds.append(self.get_rtc_minute)

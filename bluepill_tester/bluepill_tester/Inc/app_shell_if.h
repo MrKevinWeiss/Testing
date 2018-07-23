@@ -45,6 +45,7 @@
 #define MODE_ECHO		0x00
 #define MODE_ECHO_EXT	0x01
 #define MODE_REG		0x02
+#define MODE_TX			0x03
 
 /* Public Functions ----------------------------------------------------------*/
 /**

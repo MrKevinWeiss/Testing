@@ -732,6 +732,39 @@
         "type": "uint8_t"
     },
     {
+        "access": 1,
+        "bit_offset": 0,
+        "bits": 8,
+        "default": 0,
+        "description": "UART status register",
+        "is_bitfield": false,
+        "name": [
+            "uart",
+            "status"
+        ],
+        "offset": 74,
+        "size": 1,
+        "total_size": 1,
+        "type": "uart_status_t"
+    },
+    {
+        "access": 1,
+        "bit_offset": 1,
+        "bits": 1,
+        "default": 0,
+        "description": "CTS pin state",
+        "is_bitfield": true,
+        "name": [
+            "uart",
+            "status",
+            "cts"
+        ],
+        "offset": 74,
+        "size": 1,
+        "total_size": 1,
+        "type": "uint8_t"
+    },
+    {
         "access": 0,
         "bit_offset": 0,
         "bits": 8,
@@ -741,11 +774,11 @@
         "name": [
             "uart",
             "res",
-            "6"
+            "5"
         ],
-        "offset": 74,
+        "offset": 75,
         "size": 1,
-        "total_size": 6,
+        "total_size": 5,
         "type": "uint8_t"
     },
     {

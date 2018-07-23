@@ -49,8 +49,7 @@ error_t port_uart_init(PORT_UART_t *port_uart) {
 error_t port_uart_poll(PORT_UART_t *port_uart) {
 	error_t err = ENOACTION;
 
-
-	if (IS_RX_WAITING(port_uart->huart->Instance->CR3)) {
+	if (port_uart->mode != MODE_TX && IS_RX_WAITING(port_uart->huart->Instance->CR3)) {
 		err = _rx_str(port_uart);
 	} else if (port_uart->huart->TxXferCount == 0) {
 		if (port_uart->str[port_uart->size - 1] != 0) {
@@ -82,8 +81,15 @@ static error_t _xfer_complete(PORT_UART_t *port_uart) {
 	memset(port_uart->str, 0, port_uart->size);
 	HAL_UART_AbortTransmit(huart);
 	HAL_UART_AbortReceive(huart);
-	status = HAL_UART_Receive_DMA(huart,
-			(uint8_t*) str, port_uart->size);
+	if (port_uart->access == PERIPH_ACCESS && port_uart->mode == MODE_TX) {
+		memset(str, 'a', port_uart->size - 3);
+		str[port_uart->size - 2] = '\n';
+		str[port_uart->size - 1] = '\0';
+		_tx_str(port_uart);
+	} else {
+		status = HAL_UART_Receive_DMA(huart,
+				(uint8_t*) str, port_uart->size);
+	}
 	if (status == HAL_BUSY) {
 		err = EBUSY;
 	}
