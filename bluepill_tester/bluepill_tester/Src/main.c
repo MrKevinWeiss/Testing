@@ -67,6 +67,7 @@
 #include "app.h"
 #include "port.h"
 
+#include "test.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -119,7 +120,7 @@ int main(void) {
 
 	/* Configure the system clock */
 	init_clock();
-
+	run_test();
 	/* Initialize all configured peripherals */
 	init_periphs();
 

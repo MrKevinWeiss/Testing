@@ -8,7 +8,7 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#define TEST_MODE
+//#define TEST_MODE
 
 void run_test(void);
 
