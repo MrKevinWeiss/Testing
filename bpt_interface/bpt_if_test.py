@@ -1,4 +1,4 @@
-import bpt_if
+import bpt_mem_map
 import logging
 import argparse
 
@@ -15,7 +15,7 @@ if args.log is not None:
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=loglevel)
 
-bpt = bpt_if.BptIf(args.port)
+bpt = bpt_mem_map.BptMemMap(args.port)
 bpt.execute_changes()
 bpt.reset_mcu()
 cmds = bpt.get_command_list()

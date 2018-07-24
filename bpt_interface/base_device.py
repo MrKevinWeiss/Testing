@@ -13,7 +13,7 @@ class IfParams:
     data = ''
 
 
-class BaseIf:
+class Basedevice(object):
     __READ_REG_CMD = "rr"
     __WRITE_REG_CMD = "wr"
     __EXECUTE_CMD = "ex"
