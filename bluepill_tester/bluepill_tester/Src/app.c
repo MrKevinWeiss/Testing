@@ -99,49 +99,137 @@ uint32_t get_reg_size() {
 	return sizeof(reg);
 }
 
+error_t increase_reg_uint8(uint32_t index, uint8_t access) {
+	uint8_t data;
+	error_t err = read_regs(index, &data, 1);
+	if (err != EOK) return err;
+	data++;
+	return write_regs(index, &data, 1, access);
+}
+
+error_t increase_reg_int8(uint32_t index, uint8_t access) {
+	int8_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 1);
+	if (err != EOK) return err;
+	data++;
+	return write_regs(index, &data, 1, access);
+}
+
+error_t increase_reg_uint16(uint32_t index, uint8_t access) {
+	uint16_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	if (err != EOK) return err;
+	data++;
+	return write_regs(index, &data, 2, access);
+}
+
+error_t increase_reg_int16(uint32_t index, uint8_t access) {
+	int16_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	if (err != EOK) return err;
+	data++;
+	return write_regs(index, &data, 2, access);
+}
+
+error_t increase_reg_uint32(uint32_t index, uint8_t access) {
+	uint32_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
+	if (err != EOK) return err;
+	data++;
+	return write_regs(index, &data, 4, access);
+}
+
+error_t increase_reg_int32(uint32_t index, uint8_t access) {
+	int32_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
+	if (err != EOK) return err;
+	data++;
+	return write_regs(index, &data, 4, access);
+}
+
+error_t decrease_reg_uint8(uint32_t index, uint8_t access) {
+	uint8_t data;
+	error_t err = read_regs(index, &data, 1);
+	if (err != EOK) return err;
+	data--;
+	return write_regs(index, &data, 1, access);
+}
+
+error_t decrease_reg_int8(uint32_t index, uint8_t access) {
+	int8_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 1);
+	if (err != EOK) return err;
+	data--;
+	return write_regs(index, &data, 1, access);
+}
+
+error_t decrease_reg_uint16(uint32_t index, uint8_t access) {
+	uint16_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	if (err != EOK) return err;
+	data--;
+	return write_regs(index, &data, 2, access);
+}
+
+error_t decrease_reg_int16(uint32_t index, uint8_t access) {
+	int16_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 2);
+	if (err != EOK) return err;
+	data--;
+	return write_regs(index, &data, 2, access);
+}
+
+error_t decrease_reg_uint32(uint32_t index, uint8_t access) {
+	uint32_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
+	if (err != EOK) return err;
+	data--;
+	return write_regs(index, &data, 4, access);
+}
+
+error_t decrease_reg_int32(uint32_t index, uint8_t access) {
+	int32_t data;
+	error_t err = read_regs(index, (uint8_t*)&data, 4);
+	if (err != EOK) return err;
+	data--;
+	return write_regs(index, &data, 4, access);
+}
+
+
 error_t read_reg(uint32_t index, uint8_t *data) {
-	if (index >= sizeof(reg)) {
-		return EOVERFLOW;
-	} else {
-		*data = reg.data8[index];
-		return EOK;
-	}
-	return EUNKNOWN;
+	return read_regs(index, data, 1);
 }
 
 error_t read_regs(uint32_t index, uint8_t *data, uint16_t size) {
-    error_t errcode = EUNKNOWN;
-    for (int i = 0; i < size; i++) {
-        DIS_INT;
-        errcode = read_reg(index + i, &data[i]);
-        EN_INT;
-        if (errcode != EOK)
-            return errcode;
-    }
-    return errcode;
+    if (index + size > sizeof(reg)) {
+		return EOVERFLOW;
+	}
+	for (int i = 0; i < size; i++) {
+		DIS_INT;
+		data[i] = reg.data8[index + i];
+		EN_INT;
+	}
+    return EOK;
 }
 
 error_t write_reg(uint32_t index, uint8_t data, uint8_t access) {
 
-	if (index >= sizeof(reg)) {
-		return EOVERFLOW;
-	} else if (!(REG_ACCESS[index] & access)) {
-		return EACCES;
-	} else {
-		reg.data8[index] = data;
-		return EOK;
-	}
-	return EUNKNOWN;
+	return write_regs(index, &data, 1, access);
 }
 
 error_t write_regs(uint32_t index, uint8_t *data, uint16_t size, uint8_t access) {
-    error_t errcode = EUNKNOWN;
+    if (index + size > sizeof(reg)) {
+		return EOVERFLOW;
+	}
     for (int i = 0; i < size; i++) {
-        DIS_INT;
-        errcode = write_reg(index + i, data[i], access);
-        EN_INT;
-        if (errcode != EOK)
-            return errcode;
+    	if (!(REG_ACCESS[index + i] & access)) {
+    		return EACCES;
+    	}
     }
-    return errcode;
+	for (int i = 0; i < size; i++) {
+		DIS_INT;
+		reg.data8[index + i] = data[i];
+		EN_INT;
+	}
+    return EOK;
 }
