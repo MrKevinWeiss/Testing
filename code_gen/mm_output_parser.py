@@ -21,7 +21,7 @@ def parse_mem_map_to_csv(mem_map, name_delimiter='.'):
 def _record_to_getter(record, fxn_call_list=None):
     fxn_str = 'get_{}'.format('_'.join(record['name']))
     getter_str = "    def {}(self):\n".format(fxn_str)
-    getter_str += "    \"\"\"{}\"\"\"\n".format(record['description'])
+    getter_str += "        \"\"\"{}\"\"\"\n".format(record['description'])
     if record['is_bitfield']:
         getter_str += "        return self.read_bits"
         getter_str += "({}, {}, {})\n".format(record['offset'],
@@ -40,7 +40,7 @@ def _record_to_setter(record, fxn_call_list=None):
     fxn_str = 'set_{}'.format('_'.join(record['name']))
     setter_str = "    def {}(self, data={}):\n".format(fxn_str,
                                                        record['default'])
-    setter_str += "    \"\"\"{}\"\"\"\n".format(record['description'])
+    setter_str += "        \"\"\"{}\"\"\"\n".format(record['description'])
     if record['is_bitfield']:
         setter_str += "        return self.write_bits"
         setter_str += "({}, {}, {}, data)\n".format(record['offset'],
@@ -74,7 +74,7 @@ def parse_mem_map_to_if(mem_map, class_name, parent_module=None):
             if_str += '\n'
 
     if_str += "    def get_command_list(self):\n"
-    if_str += "    \"\"\"A list of all possible commands\"\"\"\n"
+    if_str += "        \"\"\"A list of all possible commands\"\"\"\n"
     if_str += "        cmds = list()\n"
     for fxn_call in fxn_call_list:
         if_str += "        cmds.append(self.{})\n".format(fxn_call)
