@@ -54,6 +54,7 @@ error_t _init_reg(map_t *reg_to_init) {
 	reg_to_init->uart.tx_count = 0;
 	reg_to_init->uart.ctrl.parity = DEFAULT_UART_PARITY;
 	reg_to_init->uart.ctrl.stop_bits = DEFAULT_UART_STOP_BITS;
+	reg_to_init->uart.status.cts = 0;
 
 	for (int i = 0; i < sizeof(reg_to_init->user_reg); i++) {
 		reg_to_init->user_reg[i] = (uint8_t) i;

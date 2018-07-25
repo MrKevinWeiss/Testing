@@ -2,13 +2,14 @@
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
+import time
 import logging
 import argparse
 from enum import Enum
 
 import serial
 
-from bpt_if import BptIf
+from bpt_mem_map import BptMemMap
 
 
 class BptUartModes(Enum):
@@ -16,6 +17,7 @@ class BptUartModes(Enum):
     ECHO = 0
     ECHO_EXT = 1
     REG_ACCESS = 2
+    TX = 3
 
 
 class RiotProtocolTest(object):
@@ -72,7 +74,7 @@ class RiotProtocolTest(object):
         return found_connection
 
     def __init__(self, port=None, dut_port=None):
-        self.bpt = BptIf(port=port)
+        self.bpt = BptMemMap(port=port)
         if dut_port is None:
             self.autoconnect(used_com=[self.bpt.get_port()])
         else:
@@ -86,6 +88,8 @@ class RiotProtocolTest(object):
         self.dev.parity = parity
         self.dev.stopbits = stopbits
         self.dev.rtscts = rtscts
+        self.dev.reset_input_buffer()
+        self.dev.reset_output_buffer()
 
     def setup_bpt(self, mode=BptUartModes.ECHO.value, baudrate=115200,
                   parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,
@@ -124,6 +128,13 @@ class RiotProtocolTest(object):
         if cmd_info.result != 'Success':
             logging.error(
                 "Failed to set UART control: {}".format(cmd_info.result))
+            return False
+
+        # reset status
+        cmd_info = self.bpt.set_uart_status(0)
+        if cmd_info.result != 'Success':
+            logging.error(
+                "Failed to set UART status: {}".format(cmd_info.result))
             return False
 
         # apply changes
@@ -210,11 +221,9 @@ class RiotProtocolTest(object):
             return False
 
         if len(result) != len(test_str):
-            logging.error("Received wrong character number: {} instead of {}".format(len(result), len(test_str)))
             return True
 
         if result != test_str:
-            logging.error("Wrong string received")
             return False
 
         logging.debug('Received string: {}'.format(result))
@@ -224,6 +233,24 @@ class RiotProtocolTest(object):
         logging.debug("RX {}, TX {}".format(rx.data, tx.data))
 
         return False
+
+    def cts_signal_test(self):
+        if not self.setup_bpt(baudrate=921600, mode=BptUartModes.TX.value):
+            return False
+
+        self.setup_dut_uart(baudrate=921600, rtscts=True)
+
+        time.sleep(2)
+
+        status = self.bpt.get_uart_status()
+
+        if status.data != 1:
+            return False
+
+        if not self.setup_bpt():
+            return False
+
+        return True
 
     def echo_test_wrong_baudrate(self):
         if not self.setup_bpt(baudrate=9600):
@@ -440,6 +467,7 @@ def main():
         logging.basicConfig(level=loglevel)
 
     test = RiotProtocolTest(port=args.port, dut_port=args.dutport)
+
     if test.echo_test():
         logging.info("Echo test: OK")
     else:
@@ -489,6 +517,11 @@ def main():
         logging.info("Register read test: OK")
     else:
         logging.info("Register read test: failed")
+
+    if test.cts_signal_test():
+        logging.info("CTS signal test: OK")
+    else:
+        logging.info("CTS signal test: failed")
 
 
 if __name__ == "__main__":

@@ -39,6 +39,8 @@
 #include "app_typedef.h"
 
 #include "app_i2c.h"
+#include "app.h"
+#include "app_access.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -415,6 +417,25 @@ void USART1_IRQHandler(void) {
 	/* USER CODE BEGIN USART1_IRQn 1 */
 
 	/* USER CODE END USART1_IRQn 1 */
+}
+
+/**
+* @brief This function handles EXTI line[15:10] interrupts.
+*/
+void EXTI15_10_IRQHandler(void)
+{
+	/* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+#ifdef BLUEPILL
+	uint8_t status;
+	read_regs(offsetof(map_t, uart.status), (uint8_t *)&status, sizeof(((uart_t *)0)->status));
+	status |= 0x01;
+	write_regs(offsetof(map_t, uart.status), (uint8_t *)&status,  sizeof(((uart_t *)0)->status), IF_ACCESS);
+	/* USER CODE END EXTI15_10_IRQn 0 */
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+	/* USER CODE BEGIN EXTI15_10_IRQn 1 */
+#endif
+	/* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

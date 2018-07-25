@@ -253,6 +253,19 @@
           }
           ],
           "description" : "UART control register"
+        },
+        {
+          "name" : "status",
+          "bit_type" : "uint8_t",
+          "type" : "uart_status_t",
+          "bitfield" : [
+          {
+            "name" : "cts",
+            "bits" : 1,
+            "description" : "CTS pin state"
+          }
+          ],
+          "description" : "UART status register"
         }
       ]
     },

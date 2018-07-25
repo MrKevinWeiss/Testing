@@ -134,6 +134,12 @@ typedef struct uart_ctrl_t_TAG {
 	uint8_t rts : 1;
 } uart_ctrl_t;
 
+/* @brief UART status register */
+typedef struct uart_status_t_TAG {
+	/* CTS pin state */
+	uint8_t cts : 1;
+} uart_status_t;
+
 /* @brief  */
 typedef union uart_t_TAG {
 	struct {
@@ -147,8 +153,10 @@ typedef union uart_t_TAG {
 		uint16_t tx_count;
 		/* UART control register */
 		uart_ctrl_t ctrl;
+		/* UART status register */
+		uart_status_t status;
 		/* Reserved bytes */
-		uint8_t res[6];
+		uint8_t res[5];
 	};
 	uint8_t data8[16];
 } uart_t;

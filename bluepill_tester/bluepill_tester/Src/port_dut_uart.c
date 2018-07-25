@@ -44,6 +44,7 @@
 #include "app.h"
 #include "app_debug.h"
 #include "port_dut_uart.h"
+#include "app_shell_if.h"
 
 
 /* Private variables ---------------------------------------------------------*/
