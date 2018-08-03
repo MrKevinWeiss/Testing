@@ -50,13 +50,9 @@
 #include "stm32f1xx_hal.h"
 
 extern DMA_HandleTypeDef hdma_adc_pm;
-
 extern DMA_HandleTypeDef hdma_usart_if_rx;
-
 extern DMA_HandleTypeDef hdma_usart_if_tx;
-
 extern DMA_HandleTypeDef hdma_usart_dut_rx;
-
 extern DMA_HandleTypeDef hdma_usart_dut_tx;
 
 extern void _Error_Handler(char *, int);
@@ -71,8 +67,7 @@ void HAL_MspInit(void) {
 
 	/* USER CODE END MspInit 0 */
 
-	__HAL_RCC_AFIO_CLK_ENABLE()
-	;
+	__HAL_RCC_AFIO_CLK_ENABLE();
 
 	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
@@ -95,30 +90,39 @@ void HAL_MspInit(void) {
 	/**NOJTAG: JTAG-DP Disabled and SW-DP Enabled
 	 */
 	__HAL_AFIO_REMAP_SWJ_NOJTAG();
-
-	/* USER CODE BEGIN MspInit 1 */
-
-	/* USER CODE END MspInit 1 */
 }
 
 void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc) {
 
 	GPIO_InitTypeDef GPIO_InitStruct;
 	if (hadc->Instance == ADC1) {
-		/* USER CODE BEGIN ADC1_MspInit 0 */
-
-		/* USER CODE END ADC1_MspInit 0 */
 		/* Peripheral clock enable */
-		__HAL_RCC_ADC1_CLK_ENABLE()
-		;
+		__HAL_RCC_ADC1_CLK_ENABLE();
 
+#ifdef BLUEPILL
 		/**ADC1 GPIO Configuration
-		 PB0     ------> ADC1_IN8
-		 PB1     ------> ADC1_IN9
-		 */
-		GPIO_InitStruct.Pin = PM_V_ADC_Pin | PM_A_ADC_Pin;
+		PA7     ------> ADC1_IN7
+		PB0     ------> ADC1_IN8
+		PB1     ------> ADC1_IN9
+		*/
+		GPIO_InitStruct.Pin = PM_LO_ADC_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		HAL_GPIO_Init(PM_LO_ADC_GPIO_Port, &GPIO_InitStruct);
+
+		GPIO_InitStruct.Pin = PM_HI_ADC_Pin|PM_V_ADC_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+#endif
+#ifdef NUCLEOF103RB
+	    /**ADC1 GPIO Configuration
+	    PC0     ------> ADC1_IN10
+	    PC1     ------> ADC1_IN11
+	    PC2     ------> ADC1_IN12
+	    */
+	    GPIO_InitStruct.Pin = PM_V_ADC_Pin|PM_LO_ADC_Pin|PM_HI_ADC_Pin;
+	    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+	    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+#endif
 
 		/* ADC1 DMA Init */
 		/* ADC1 Init */
@@ -176,11 +180,24 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc) {
 		/* Peripheral clock disable */
 		__HAL_RCC_ADC1_CLK_DISABLE();
 
-		/**ADC1 GPIO Configuration
-		 PB0     ------> ADC1_IN8
-		 PB1     ------> ADC1_IN9
-		 */
-		HAL_GPIO_DeInit(GPIOB, PM_V_ADC_Pin | PM_A_ADC_Pin);
+#ifdef BLUEPILL
+	    /**ADC1 GPIO Configuration
+	    PA7     ------> ADC1_IN7
+	    PB0     ------> ADC1_IN8
+	    PB1     ------> ADC1_IN9
+	    */
+	    HAL_GPIO_DeInit(PM_LO_ADC_GPIO_Port, PM_LO_ADC_Pin);
+
+	    HAL_GPIO_DeInit(GPIOB, PM_HI_ADC_Pin|PM_V_ADC_Pin);
+#endif
+#ifdef NUCLEOF103RB
+	    /**ADC1 GPIO Configuration
+	    PC0     ------> ADC1_IN10
+	    PC1     ------> ADC1_IN11
+	    PC2     ------> ADC1_IN12
+	    */
+	    HAL_GPIO_DeInit(GPIOC, PM_V_ADC_Pin|PM_LO_ADC_Pin|PM_HI_ADC_Pin);
+#endif
 
 		/* ADC1 DMA DeInit */
 		HAL_DMA_DeInit(hadc->DMA_Handle);
@@ -651,8 +668,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
 		/**USART3 GPIO Configuration
 		 PB10     ------> USART3_TX
 		 PB11     ------> USART3_RX
-		 PB13     ------> USART3_CTS
-		 PB14     ------> USART3_RTS
 		 */
 		GPIO_InitStruct.Pin = DUT_TX_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -703,21 +718,18 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
 #ifdef NUCLEOF103RB
 	if (huart->Instance == USART1) {
 		/* Peripheral clock enable */
-		__HAL_RCC_USART1_CLK_ENABLE()
-		;
+		__HAL_RCC_USART1_CLK_ENABLE();
 
-		/**USART1 GPIO Configuration
-		 PA9     ------> USART1_TX
-		 PA10     ------> USART1_RX
-		 PA11     ------> USART1_CTS
-		 PA12     ------> USART1_RTS
-		 */
-		GPIO_InitStruct.Pin = DUT_TX_Pin | DUT_RTS_Pin;
+	    /**USART1 GPIO Configuration
+	    PA9     ------> USART1_TX
+	    PA10     ------> USART1_RX
+	    */
+	    GPIO_InitStruct.Pin = DUT_TX_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-		GPIO_InitStruct.Pin = DUT_RX_Pin | DUT_CTS_Pin;
+	    GPIO_InitStruct.Pin = DUT_RX_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -849,11 +861,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart) {
 		/**USART1 GPIO Configuration
 		 PA9     ------> USART1_TX
 		 PA10     ------> USART1_RX
-		 PA11     ------> USART1_CTS
-		 PA12     ------> USART1_RTS
 		 */
-		HAL_GPIO_DeInit(GPIOA,
-		DUT_TX_Pin | DUT_RX_Pin | DUT_CTS_Pin | DUT_RTS_Pin);
+		HAL_GPIO_DeInit(GPIOA, DUT_TX_Pin | DUT_RX_Pin);
 
 		/* USART1 DMA DeInit */
 		HAL_DMA_DeInit(huart->hdmarx);
