@@ -49,7 +49,7 @@ static void MX_ADC1_Init(void) {
 	hadc_pm.Init.DiscontinuousConvMode = DISABLE;
 	hadc_pm.Init.ExternalTrigConv = ADC_SOFTWARE_START;
 	hadc_pm.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-	hadc_pm.Init.NbrOfConversion = 2;
+	hadc_pm.Init.NbrOfConversion = 3;
 	if (HAL_ADC_Init(&hadc_pm) != HAL_OK) {
 		_Error_Handler(__FILE__, __LINE__);
 	}
@@ -70,6 +70,15 @@ static void MX_ADC1_Init(void) {
 	if (HAL_ADC_ConfigChannel(&hadc_pm, &sConfig) != HAL_OK) {
 		_Error_Handler(__FILE__, __LINE__);
 	}
+
+	/**Configure Regular Channel
+	 */
+	sConfig.Channel = ADC_CHANNEL_7;
+	sConfig.Rank = ADC_REGULAR_RANK_3;
+	if (HAL_ADC_ConfigChannel(&hadc_pm, &sConfig) != HAL_OK) {
+		_Error_Handler(__FILE__, __LINE__);
+	}
+
 
 }
 
@@ -93,7 +102,7 @@ static void MX_ADC2_Init(void) {
 
 	/**Configure Regular Channel
 	 */
-	sConfig.Channel = ADC_CHANNEL_7;
+	sConfig.Channel = ADC_CHANNEL_6;
 	sConfig.Rank = ADC_REGULAR_RANK_1;
 	sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
 	if (HAL_ADC_ConfigChannel(&hadc_dut, &sConfig) != HAL_OK) {
@@ -257,8 +266,7 @@ static void MX_USART3_UART_Init(void) {
  */
 static void MX_DMA_Init(void) {
 	/* DMA controller clock enable */
-	__HAL_RCC_DMA1_CLK_ENABLE()
-	;
+	__HAL_RCC_DMA1_CLK_ENABLE();
 
 	/* DMA interrupt init */
 	/* DMA1_Channel1_IRQn interrupt configuration */
@@ -291,26 +299,23 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitTypeDef GPIO_InitStruct;
 
 	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE()
-	;
-	__HAL_RCC_GPIOD_CLK_ENABLE()
-	;
-	__HAL_RCC_GPIOA_CLK_ENABLE()
-	;
-	__HAL_RCC_GPIOB_CLK_ENABLE()
-	;
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA,
-			DEBUG0_Pin | DEBUG1_Pin | DEBUG2_Pin | DEBUG3_Pin | TEST_FAIL_Pin
-			| TEST_WARN_Pin | TEST_PASS_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, DEBUG0_Pin|DEBUG1_Pin|DEBUG2_Pin|TEST_PASS_Pin
+					  |TEST_WARN_Pin|TEST_FAIL_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(DUT_RST_GPIO_Port, DUT_RST_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_SET);
+
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(DUT_RTS_GPIO_Port, DUT_RTS_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : LED0_Pin */
 	GPIO_InitStruct.Pin = LED0_Pin;
@@ -318,37 +323,40 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LED0_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : DEBUG0_Pin DEBUG1_Pin DEBUG2_Pin DEBUG3_Pin
-	 TEST_FAIL_Pin TEST_WARN_Pin TEST_PASS_Pin */
-	GPIO_InitStruct.Pin = DEBUG0_Pin | DEBUG1_Pin | DEBUG2_Pin | DEBUG3_Pin
-	| TEST_FAIL_Pin | TEST_WARN_Pin | TEST_PASS_Pin;
+	/*Configure GPIO pins : DEBUG0_Pin DEBUG1_Pin DEBUG2_Pin TEST_PASS_Pin
+	TEST_WARN_Pin TEST_FAIL_Pin */
+	GPIO_InitStruct.Pin = DEBUG0_Pin|DEBUG1_Pin|DEBUG2_Pin|TEST_PASS_Pin
+						  |TEST_WARN_Pin|TEST_FAIL_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : DUT_RST_Pin */
 	GPIO_InitStruct.Pin = DUT_RST_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(DUT_RST_GPIO_Port, &GPIO_InitStruct);
-
-	/*Configure GPIO pin : USER_BTN_Pin */
-	GPIO_InitStruct.Pin = USER_BTN_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(USER_BTN_GPIO_Port, &GPIO_InitStruct);
-
-	/*Configure GPIO pin : DUT_RTS_Pin */
-	GPIO_InitStruct.Pin = DUT_RTS_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(DUT_RTS_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : DUT_CTS_Pin */
 	GPIO_InitStruct.Pin = DUT_CTS_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(DUT_CTS_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : DUT_RTS_Pin */
+	GPIO_InitStruct.Pin = DUT_RTS_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(DUT_RTS_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : USER_BTN_Pin */
+	GPIO_InitStruct.Pin = USER_BTN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(USER_BTN_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
@@ -429,14 +437,14 @@ static void MX_ADC1_Init(void) {
 	hadc_pm.Init.DiscontinuousConvMode = DISABLE;
 	hadc_pm.Init.ExternalTrigConv = ADC_SOFTWARE_START;
 	hadc_pm.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-	hadc_pm.Init.NbrOfConversion = 2;
+	hadc_pm.Init.NbrOfConversion = 3;
 	if (HAL_ADC_Init(&hadc_pm) != HAL_OK) {
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
 	/**Configure Regular Channel
 	 */
-	sConfig.Channel = ADC_CHANNEL_11;
+	sConfig.Channel = ADC_CHANNEL_10;
 	sConfig.Rank = ADC_REGULAR_RANK_1;
 	sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
 	if (HAL_ADC_ConfigChannel(&hadc_pm, &sConfig) != HAL_OK) {
@@ -445,8 +453,16 @@ static void MX_ADC1_Init(void) {
 
 	/**Configure Regular Channel
 	 */
-	sConfig.Channel = ADC_CHANNEL_10;
+	sConfig.Channel = ADC_CHANNEL_11;
 	sConfig.Rank = ADC_REGULAR_RANK_2;
+	if (HAL_ADC_ConfigChannel(&hadc_pm, &sConfig) != HAL_OK) {
+		_Error_Handler(__FILE__, __LINE__);
+	}
+
+	/**Configure Regular Channel
+	 */
+	sConfig.Channel = ADC_CHANNEL_12;
+	sConfig.Rank = ADC_REGULAR_RANK_3;
 	if (HAL_ADC_ConfigChannel(&hadc_pm, &sConfig) != HAL_OK) {
 		_Error_Handler(__FILE__, __LINE__);
 	}
@@ -628,7 +644,7 @@ static void MX_USART1_UART_Init(void) {
 	huart_dut.Init.StopBits = UART_STOPBITS_1;
 	huart_dut.Init.Parity = UART_PARITY_NONE;
 	huart_dut.Init.Mode = UART_MODE_TX_RX;
-	huart_dut.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+	huart_dut.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	huart_dut.Init.OverSampling = UART_OVERSAMPLING_16;
 	if (HAL_UART_Init(&huart_dut) != HAL_OK) {
 		_Error_Handler(__FILE__, __LINE__);
@@ -698,14 +714,11 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA,
-			TEST_WARN_Pin | TEST_FAIL_Pin | TEST_PASS_Pin | LED0_Pin,
-			GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, TEST_WARN_Pin|TEST_FAIL_Pin|TEST_PASS_Pin|LED0_Pin
+						  |DUT_RTS_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB,
-			DUT_RST_Pin | DEBUG3_Pin | DEBUG0_Pin | DEBUG1_Pin | DEBUG2_Pin,
-			GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, DUT_RST_Pin|DEBUG0_Pin|DEBUG1_Pin|DEBUG2_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : USER_BTN_Pin */
 	GPIO_InitStruct.Pin = USER_BTN_Pin;
@@ -713,22 +726,31 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(USER_BTN_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : TEST_WARN_Pin TEST_FAIL_Pin TEST_PASS_Pin LED0_Pin */
-	GPIO_InitStruct.Pin = TEST_WARN_Pin | TEST_FAIL_Pin | TEST_PASS_Pin
-			| LED0_Pin;
+	/*Configure GPIO pins : TEST_WARN_Pin TEST_FAIL_Pin TEST_PASS_Pin LED0_Pin
+						   DUT_RTS_Pin */
+	GPIO_InitStruct.Pin = TEST_WARN_Pin|TEST_FAIL_Pin|TEST_PASS_Pin|LED0_Pin
+						  |DUT_RTS_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : DUT_RST_Pin DEBUG3_Pin DEBUG0_Pin DEBUG1_Pin
-	 DEBUG2_Pin */
-	GPIO_InitStruct.Pin = DUT_RST_Pin | DEBUG3_Pin | DEBUG0_Pin | DEBUG1_Pin
-			| DEBUG2_Pin;
+	/*Configure GPIO pins : DUT_RST_Pin DEBUG0_Pin DEBUG1_Pin DEBUG2_Pin */
+	GPIO_InitStruct.Pin = DUT_RST_Pin|DEBUG0_Pin|DEBUG1_Pin|DEBUG2_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : DUT_CTS_Pin */
+	GPIO_InitStruct.Pin = DUT_CTS_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	HAL_GPIO_Init(DUT_CTS_GPIO_Port, &GPIO_InitStruct);
+
+	/* EXTI interrupt init*/
+	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
 /**

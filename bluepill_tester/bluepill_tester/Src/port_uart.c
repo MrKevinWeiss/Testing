@@ -75,7 +75,7 @@ static error_t _xfer_complete(PORT_UART_t *port_uart) {
 	char *str = port_uart->str;
 	UART_HandleTypeDef *huart = port_uart->huart;
 
-	HAL_StatusTypeDef status;
+	HAL_StatusTypeDef status = HAL_ERROR;
 	error_t err = EUNKNOWN;
 
 	memset(port_uart->str, 0, port_uart->size);
@@ -85,19 +85,20 @@ static error_t _xfer_complete(PORT_UART_t *port_uart) {
 		memset(str, 'a', port_uart->size - 3);
 		str[port_uart->size - 2] = '\n';
 		str[port_uart->size - 1] = '\0';
-		_tx_str(port_uart);
+		err = _tx_str(port_uart);
 	} else {
 		status = HAL_UART_Receive_DMA(huart,
 				(uint8_t*) str, port_uart->size);
+		if (status == HAL_BUSY) {
+			err = EBUSY;
+		}
+		if (status == HAL_ERROR) {
+			err = ENXIO;
+		} else if (status == HAL_OK) {
+			err = EOK;
+		}
 	}
-	if (status == HAL_BUSY) {
-		err = EBUSY;
-	}
-	if (status == HAL_ERROR) {
-		err = ENXIO;
-	} else if (status == HAL_OK) {
-		err = EOK;
-	}
+
 	return err;
 }
 

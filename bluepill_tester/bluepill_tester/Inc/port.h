@@ -17,20 +17,20 @@
 #define DEBUG1_GPIO_Port GPIOA
 #define DEBUG2_Pin GPIO_PIN_2
 #define DEBUG2_GPIO_Port GPIOA
-#define DEBUG3_Pin GPIO_PIN_3
-#define DEBUG3_GPIO_Port GPIOA
-#define TEST_FAIL_Pin GPIO_PIN_4
-#define TEST_FAIL_GPIO_Port GPIOA
-#define TEST_WARN_Pin GPIO_PIN_5
-#define TEST_WARN_GPIO_Port GPIOA
-#define TEST_PASS_Pin GPIO_PIN_6
+#define TEST_PASS_Pin GPIO_PIN_3
 #define TEST_PASS_GPIO_Port GPIOA
-#define DUT_ADC_Pin GPIO_PIN_7
+#define TEST_WARN_Pin GPIO_PIN_4
+#define TEST_WARN_GPIO_Port GPIOA
+#define TEST_FAIL_Pin GPIO_PIN_5
+#define TEST_FAIL_GPIO_Port GPIOA
+#define DUT_ADC_Pin GPIO_PIN_6
 #define DUT_ADC_GPIO_Port GPIOA
-#define PM_V_ADC_Pin GPIO_PIN_0
+#define PM_LO_ADC_Pin GPIO_PIN_7
+#define PM_LO_ADC_GPIO_Port GPIOA
+#define PM_HI_ADC_Pin GPIO_PIN_0
+#define PM_HI_ADC_GPIO_Port GPIOB
+#define PM_V_ADC_Pin GPIO_PIN_1
 #define PM_V_ADC_GPIO_Port GPIOB
-#define PM_A_ADC_Pin GPIO_PIN_1
-#define PM_A_ADC_GPIO_Port GPIOB
 #define DUT_TX_Pin GPIO_PIN_10
 #define DUT_TX_GPIO_Port GPIOB
 #define DUT_RX_Pin GPIO_PIN_11
@@ -39,6 +39,7 @@
 #define DUT_RST_GPIO_Port GPIOB
 #define DUT_CTS_Pin GPIO_PIN_13
 #define DUT_CTS_GPIO_Port GPIOB
+#define DUT_CTS_EXTI_IRQn EXTI15_10_IRQn
 #define DUT_RTS_Pin GPIO_PIN_14
 #define DUT_RTS_GPIO_Port GPIOB
 #define USER_BTN_Pin GPIO_PIN_15
@@ -61,10 +62,10 @@
 #define DUT_SCL_GPIO_Port GPIOB
 #define DUT_SDA_Pin GPIO_PIN_7
 #define DUT_SDA_GPIO_Port GPIOB
-#define DUT_DAC_Pin GPIO_PIN_8
-#define DUT_DAC_GPIO_Port GPIOB
-#define DUT_PWM_Pin GPIO_PIN_9
+#define DUT_PWM_Pin GPIO_PIN_8
 #define DUT_PWM_GPIO_Port GPIOB
+#define DUT_DAC_Pin GPIO_PIN_9
+#define DUT_DAC_GPIO_Port GPIOB
 #endif
 
 #ifdef NUCLEOF103RB
@@ -72,8 +73,10 @@
 #define USER_BTN_GPIO_Port GPIOC
 #define PM_V_ADC_Pin GPIO_PIN_0
 #define PM_V_ADC_GPIO_Port GPIOC
-#define PM_A_ADC_Pin GPIO_PIN_1
-#define PM_A_ADC_GPIO_Port GPIOC
+#define PM_LO_ADC_Pin GPIO_PIN_1
+#define PM_LO_ADC_GPIO_Port GPIOC
+#define PM_HI_ADC_Pin GPIO_PIN_2
+#define PM_HI_ADC_GPIO_Port GPIOC
 #define TEST_WARN_Pin GPIO_PIN_0
 #define TEST_WARN_GPIO_Port GPIOA
 #define TEST_FAIL_Pin GPIO_PIN_1
@@ -90,8 +93,6 @@
 #define DUT_ADC_GPIO_Port GPIOB
 #define DUT_RST_Pin GPIO_PIN_2
 #define DUT_RST_GPIO_Port GPIOB
-#define DEBUG3_Pin GPIO_PIN_10
-#define DEBUG3_GPIO_Port GPIOB
 #define DUT_NSS_Pin GPIO_PIN_12
 #define DUT_NSS_GPIO_Port GPIOB
 #define DUT_SCK_Pin GPIO_PIN_13
@@ -112,6 +113,7 @@
 #define DUT_RX_GPIO_Port GPIOA
 #define DUT_CTS_Pin GPIO_PIN_11
 #define DUT_CTS_GPIO_Port GPIOA
+#define DUT_CTS_EXTI_IRQn EXTI15_10_IRQn
 #define DUT_RTS_Pin GPIO_PIN_12
 #define DUT_RTS_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
@@ -132,7 +134,8 @@
 
 #define USER_BTN USER_BTN_GPIO_Port, USER_BTN_Pin
 #define PM_V_ADC PM_V_ADC_GPIO_Port, PM_V_ADC_Pin
-#define PM_A_ADC PM_A_ADC_GPIO_Port, PM_A_ADC_Pin
+#define PM_LO_ADC PM_LO_ADC_GPIO_Port, PM_LO_ADC_Pin
+#define PM_HI_ADC PM_HI_ADC_GPIO_Port, PM_HI_ADC_Pin
 #define TEST_WARN TEST_WARN_GPIO_Port, TEST_WARN_Pin
 #define TEST_FAIL TEST_FAIL_GPIO_Port, TEST_FAIL_Pin
 #define IF_TX IF_TX_GPIO_Port, IF_TX_Pin
@@ -141,7 +144,6 @@
 #define LED0 LED0_GPIO_Port, LED0_Pin
 #define DUT_ADC DUT_ADC_GPIO_Port, DUT_ADC_Pin
 #define DUT_RST DUT_RST_GPIO_Port, DUT_RST_Pin
-#define DEBUG3 DEBUG3_GPIO_Port, DEBUG3_Pin
 #define DUT_NSS DUT_NSS_GPIO_Port, DUT_NSS_Pin
 #define DUT_SCK DUT_SCK_GPIO_Port, DUT_SCK_Pin
 #define DUT_MISO DUT_MISO_GPIO_Port, DUT_MISO_Pin
