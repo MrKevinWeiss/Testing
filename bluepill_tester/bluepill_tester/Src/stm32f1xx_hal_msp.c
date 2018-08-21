@@ -246,10 +246,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c) {
 
 	GPIO_InitTypeDef GPIO_InitStruct;
 	if (hi2c->Instance == I2C1) {
-		/* USER CODE BEGIN I2C1_MspInit 0 */
-
-		/* USER CODE END I2C1_MspInit 0 */
-
+#ifdef NUCLEOF103RB
+		__HAL_AFIO_REMAP_I2C1_ENABLE();
+#endif
 		/**I2C1 GPIO Configuration
 		 PB6     ------> I2C1_SCL
 		 PB7     ------> I2C1_SDA
