@@ -718,7 +718,10 @@ static void MX_GPIO_Init(void) {
 						  |DUT_RTS_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB, DUT_RST_Pin|DEBUG0_Pin|DEBUG1_Pin|DEBUG2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DUT_RST_GPIO_Port, DUT_RST_Pin, GPIO_PIN_SET);
+
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOB, DEBUG0_Pin|DEBUG1_Pin|DEBUG2_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : USER_BTN_Pin */
 	GPIO_InitStruct.Pin = USER_BTN_Pin;
